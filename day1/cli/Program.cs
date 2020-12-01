@@ -10,13 +10,16 @@ namespace cli
         {
             string[] lines = File.ReadAllLines("day1.txt");
             int[] amounts = lines.Select(l => int.Parse(l)).ToArray();
-            for (int i = 0; i < amounts.Length - 1; i++)
+            for (int i = 0; i < amounts.Length - 2; i++)
             {
-                for (int j = i + 1; j < amounts.Length; j++)
+                for (int j = i + 1; j < amounts.Length - 1; j++)
                 {
-                    if (amounts[i] + amounts[j] == 2020)
+                    for (int k = j + 1; k < amounts.Length; k++)
                     {
-                        Console.WriteLine(amounts[i] * amounts[j]);
+                        if (amounts[i] + amounts[j] + amounts[k] == 2020)
+                        {
+                            Console.WriteLine(amounts[i] * amounts[j] * amounts[k]);
+                        }
                     }
 
                 }
