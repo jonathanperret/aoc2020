@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Linq;
+using MoreLinq;
 
 namespace cli
 {
@@ -10,20 +11,12 @@ namespace cli
         {
             string[] lines = File.ReadAllLines("day1.txt");
             int[] amounts = lines.Select(l => int.Parse(l)).ToArray();
-            for (int i = 0; i < amounts.Length - 2; i++)
-            {
-                for (int j = i + 1; j < amounts.Length - 1; j++)
-                {
-                    for (int k = j + 1; k < amounts.Length; k++)
-                    {
-                        if (amounts[i] + amounts[j] + amounts[k] == 2020)
-                        {
-                            Console.WriteLine(amounts[i] * amounts[j] * amounts[k]);
-                        }
-                    }
 
-                }
-            }
+            var results = amounts.Subsets(3)
+                .Where(s => s.Sum() == 2020)
+                .Select(s => s.Aggregate((x, y) => x * y));
+
+            Console.WriteLine(results.First());
         }
     }
 }
