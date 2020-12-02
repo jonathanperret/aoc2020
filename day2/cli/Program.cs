@@ -15,11 +15,10 @@ namespace cli
             int validCount = 0;
             foreach (string line in lines)
             {
-                var sp = line.Split(" ");
-                var minmax = sp[0].Split("-").Select(int.Parse).ToArray();
-                int min = minmax[0], max = minmax[1];
-                char letter = sp[1].Substring(0, 1).ToCharArray()[0];
-                string pass = sp[2];
+                var sp = line.Split("- :".ToCharArray(), StringSplitOptions.RemoveEmptyEntries);
+                int min = int.Parse(sp[0]), max = int.Parse(sp[1]);
+                char letter = sp[2][0];
+                string pass = sp[3];
                 int letterCount = pass.Where(c => c == letter).Count();
                 bool valid =
                     min <= pass.Length && max <= pass.Length && (
