@@ -21,7 +21,10 @@ namespace cli
                 char letter = sp[1].Substring(0, 1).ToCharArray()[0];
                 string pass = sp[2];
                 int letterCount = pass.Where(c => c == letter).Count();
-                bool valid = letterCount >= min && letterCount <= max;
+                bool valid =
+                    min <= pass.Length && max <= pass.Length && (
+                        pass.ElementAt(min - 1) == letter ^ pass.ElementAt(max - 1) == letter
+                    );
                 if (valid) validCount++;
                 Console.WriteLine($"{min} {max} {letter} {pass} {letterCount} {valid}");
             }
