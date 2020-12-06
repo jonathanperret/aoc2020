@@ -25,5 +25,11 @@ namespace cli
         public static void Deconstruct<T>(this IEnumerable<T> source, out T item1, out T item2) => (item1, item2) = source.Fold(ValueTuple.Create<T, T>);
         public static void Deconstruct<T>(this IEnumerable<T> source, out T item1, out T item2, out T item3) => (item1, item2, item3) = source.Fold(ValueTuple.Create<T, T, T>);
         public static void Deconstruct<T>(this IEnumerable<T> source, out T item1, out T item2, out T item3, out T item4) => (item1, item2, item3, item4) = source.Fold(ValueTuple.Create<T, T, T, T>);
+
+        public static IEnumerable<T> Debug<T>(this IEnumerable<T> source) => source.Debug(x => x.ToString());
+        public static IEnumerable<T> Debug<T>(this IEnumerable<T> source, Func<T, string> formatter)
+        {
+            return source.Pipe(x => Console.WriteLine(formatter(x)));
+        }
     }
 }
