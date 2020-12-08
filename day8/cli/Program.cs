@@ -22,57 +22,39 @@ namespace cli
             var groups = lines.Split("");
 
             var seen = new HashSet<long>();
-            Run(lines, seen);
-
-            W($"loop length={seen.Count}");
-            foreach (long ip in seen.OrderBy(x => x))
+            var states = new List<(long ip, long acc)>();
+            var (_, firstLoopAcc) = Run(lines, seen, (0, 0), states.Add);
+            W($"part 1: {firstLoopAcc}");
+            foreach (var state in states)
             {
-                string line = lines[ip];
-                var (op, argstr) = line.Split(" ");
-                switch (op)
+                var (ip, acc) = state;
+                W($"restarting from ip={ip}, A={acc}");
+                var (terminated, finalAcc) = Run(lines, seen, state, (_) => { });
+                if (terminated)
                 {
-                    case "jmp":
-                        W($"changing ip={ip} to nop");
-                        lines[ip] = $"nop {argstr}";
-                        break;
-                    case "nop":
-                        W($"changing ip={ip} to jmp");
-                        lines[ip] = $"jmp {argstr}";
-                        break;
-                    default:
-                        W($"not changing ip={ip}");
-                        continue;
-                }
-                if (Run(lines, new HashSet<long>()))
-                {
-                    return;
-                }
-                else
-                {
-                    lines[ip] = line;
+                    W($"part 2: {finalAcc}");
+                    break;
                 }
             }
         }
 
-        private static bool Run(string[] lines, HashSet<long> seen)
+        private static (bool terminated, long finalAcc) Run(string[] lines, HashSet<long> seen, (long ip, long acc) state, Action<(long ip, long acc)> saveState)
         {
-            long acc = 0;
+            var (ip, acc) = state;
             int opcnt = 0;
-            long ip = 0;
-            var ipseq = new List<int>();
             while (opcnt < 10000)
             {
                 if (ip == lines.Length)
                 {
                     W($"terminating after {opcnt} ops, A={acc}");
-                    return true;
+                    return (true, acc);
                 }
                 string line = lines[ip];
 
                 if (seen.Contains(ip))
                 {
                     W($"infinite loop detected after {opcnt} ops, ip={ip}, A={acc}");
-                    return false;
+                    return (false, acc);
                 }
 
                 seen.Add(ip);
@@ -83,23 +65,25 @@ namespace cli
                 switch (op)
                 {
                     case "nop":
+                        saveState((ip + arg, acc));
                         break;
                     case "acc":
                         acc += arg;
                         break;
                     case "jmp":
+                        saveState((ip + 1, acc));
                         nextip = ip + arg;
                         break;
                     default:
                         W($"bad op {op}");
                         break;
                 }
-                W($"{ip} {line} A={acc}");
+                //W($"{ip} {line} A={acc}");
                 ip = nextip;
                 opcnt++;
             }
             W("timeout");
-            return false;
+            return (false, acc);
         }
     }
 }
