@@ -25,20 +25,25 @@ namespace cli
 
             var blocks = numbers.Window(26);
 
-            blocks.Select(block =>
+            long badnumber = blocks.Where(block =>
             {
                 var preamble = block.Take(25);
                 var last = block.Skip(25).First();
 
                 var matches = preamble.Subsets(2).Where(subset => subset.ElementAt(0) != subset.ElementAt(1) && subset.Sum() == last);
                 //W(matches.Select(m => m.Fold((a, b) => $"{a} + {b} = {a + b} == {last}")).ToDelimitedString(", "));
-                if (!matches.Any())
-                {
-                    W(last);
-                }
 
-                return true;
-            }).Count();
+                return !matches.Any();
+            }).Select(block => block.Skip(25).First())
+            .First();
+
+            W(badnumber);
+
+            Enumerable.Range(2, numbers.Count() - 1).SelectMany(size =>
+            {
+                return numbers.Window(size).Where(block => block.Sum() == badnumber)
+                .Select(block => $"{block.Min()}, {block.Max()}, {block.Min() + block.Max()}");
+            }).Pipe(W).Count();
         }
     }
 }
