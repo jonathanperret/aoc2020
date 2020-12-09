@@ -22,28 +22,31 @@ namespace cli
             var groups = lines.Split("");
             var numbers = lines.Select(long.Parse);
 
-
             var blocks = numbers.Window(26);
 
-            long badnumber = blocks.Where(block =>
+            long badnumber = blocks.AsParallel()
+            .Choose(block =>
             {
                 var preamble = block.Take(25);
-                var last = block.Skip(25).First();
+                var last = block.ElementAt(25);
 
-                var matches = preamble.Subsets(2).Where(subset => subset.ElementAt(0) != subset.ElementAt(1) && subset.Sum() == last);
-                //W(matches.Select(m => m.Fold((a, b) => $"{a} + {b} = {a + b} == {last}")).ToDelimitedString(", "));
+                var matches = preamble.Subsets(2).Where(pair => pair.Fold((a, b) => a != b && a + b == last));
 
-                return !matches.Any();
-            }).Select(block => block.Skip(25).First())
-            .First();
+                return (!matches.Any(), last);
+            }).First();
 
-            W(badnumber);
+            W($"{badnumber} is bad");
 
-            Enumerable.Range(2, numbers.Count() - 1).SelectMany(size =>
-            {
-                return numbers.Window(size).Where(block => block.Sum() == badnumber)
-                .Select(block => $"{block.Min()}, {block.Max()}, {block.Min() + block.Max()}");
-            }).Pipe(W).Count();
+            var subsequences = Enumerable.Range(2, numbers.Count() - 1)
+            .SelectMany(size => numbers.Window(size));
+
+            subsequences.AsParallel()
+            .Where(block => block.Sum() == badnumber)
+            .Select(block =>
+                $"{block.OrderBy(x => x).ToDelimitedString(" + ")} = {block.Sum()} == {badnumber}\n"
+                + $"{block.Min()} + {block.Max()} = {block.Min() + block.Max()}"
+            )
+            .ForEach(W);
         }
     }
 }
