@@ -1,43 +1,30 @@
 ﻿using System;
 using System.IO;
 using System.Linq;
-using Sprache;
-using System.Numerics;
-using MoreLinq;
-using System.Text.RegularExpressions;
-using System.Collections.Generic;
+using static cli.Util;
 
 namespace cli
 {
     public static class Program
     {
-        public static void W<T>(T data)
-        {
-            Console.WriteLine(data);
-        }
         static void Main(string[] args)
         {
-            var text = File.ReadAllText("input.txt");
             var lines = File.ReadAllLines("input.txt");
-            var groups = lines.Split("");
-            var levels = lines.Select(int.Parse).OrderBy(x => x).ToArray();
-            var blocks = levels.Window(26);
-            int maxlevel = levels.Max();
-            int devicelevel = maxlevel + 3;
+            var levels = lines.Select(int.Parse).ToArray();
 
-            var waysToReach = new long[devicelevel];
-            waysToReach[0] = 1;
-            foreach (int level in levels)
+            int devicelevel = levels.Max() + 3;
+
+            var knownLevels = levels.Append(devicelevel).ToHashSet();
+
+            var waysToReach = Memoize<int, long>((level, recur) =>
             {
-                if (level >= 1) waysToReach[level] += waysToReach[level - 1];
-                if (level >= 2) waysToReach[level] += waysToReach[level - 2];
-                if (level >= 3) waysToReach[level] += waysToReach[level - 3];
-                W($"{level} : {waysToReach[level]}");
-            }
+                if (level == 0) return 1;
+                if (!knownLevels.Contains(level)) return 0;
 
-            long result = waysToReach[devicelevel - 1]
-                + waysToReach[devicelevel - 2]
-                + waysToReach[devicelevel - 3];
+                return recur(level - 1) + recur(level - 2) + recur(level - 3);
+            });
+
+            long result = waysToReach(devicelevel);
             W($"{devicelevel}: {result}");
         }
     }
