@@ -12,30 +12,34 @@ public static class Program
 {
     static void Main(string[] args)
     {
-        var text = File.ReadAllText("input.txt");
         var lines = File.ReadAllLines("input.txt");
 
         var matrix = lines.Select(
             line => line.ToCharArray()
         ).ToArray();
 
-
-        int result = 0;
+        int occupied = 0;
         int iter = 0;
         for (iter = 0; iter < 100000; iter++)
         {
-            matrix = matrix.Select((row, rowIndex) =>
+            matrix = matrix.AsParallel().Select((row, rowIndex) =>
             {
                 return row.Select((seat, colIndex) =>
                 {
+                    bool inPlane(int r, int c)
+                    {
+                        return r >= 0 && r < matrix.Length && c >= 0 && c < row.Length;
+                    }
                     int scan(int dr, int dc)
                     {
-                        int r = rowIndex + dr, c = colIndex + dc;
-                        while (r >= 0 && r < matrix.Length && c >= 0 && c < row.Length && matrix[r][c] == '.')
+                        int r = rowIndex, c = colIndex;
+                        do
                         {
                             r += dr; c += dc;
+                            if (!inPlane(r, c)) return 0;
                         }
-                        return (r >= 0 && r < matrix.Length && c >= 0 && c < row.Length && matrix[r][c] == '#') ? 1 : 0;
+                        while (matrix[r][c] == '.');
+                        return matrix[r][c] == '#' ? 1 : 0;
                     }
                     int neighbours =
                         scan(-1, -1) +
@@ -58,15 +62,14 @@ public static class Program
                     {
                         return seat;
                     }
-
                 }).ToArray();
             }).ToArray();
 
-            int oldResult = result;
-            result = matrix.Select(row => row.Count(c => c == '#')).Sum();
-            if (oldResult == result) break;
+            int newOccupied = matrix.SelectMany(row => row).Count(c => c == '#');
+            if (newOccupied == occupied) break;
+            occupied = newOccupied;
         }
 
-        W($"{result} after {iter}");
+        W($"{occupied} after {iter}");
     }
 }
