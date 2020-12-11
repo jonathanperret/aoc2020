@@ -28,20 +28,29 @@ public static class Program
             {
                 return row.Select((seat, colIndex) =>
                 {
+                    int scan(int dr, int dc)
+                    {
+                        int r = rowIndex + dr, c = colIndex + dc;
+                        while (r >= 0 && r < matrix.Length && c >= 0 && c < row.Length && matrix[r][c] == '.')
+                        {
+                            r += dr; c += dc;
+                        }
+                        return (r >= 0 && r < matrix.Length && c >= 0 && c < row.Length && matrix[r][c] == '#') ? 1 : 0;
+                    }
                     int neighbours =
-                        (rowIndex > 0 && colIndex > 0 && matrix[rowIndex - 1][colIndex - 1] == '#' ? 1 : 0) +
-                        (rowIndex > 0 && matrix[rowIndex - 1][colIndex] == '#' ? 1 : 0) +
-                        (rowIndex > 0 && colIndex < row.Length - 1 && matrix[rowIndex - 1][colIndex + 1] == '#' ? 1 : 0) +
-                        (colIndex > 0 && row[colIndex - 1] == '#' ? 1 : 0) +
-                        (colIndex < row.Length - 1 && row[colIndex + 1] == '#' ? 1 : 0) +
-                        (rowIndex < matrix.Length - 1 && colIndex > 0 && matrix[rowIndex + 1][colIndex - 1] == '#' ? 1 : 0) +
-                        (rowIndex < matrix.Length - 1 && matrix[rowIndex + 1][colIndex] == '#' ? 1 : 0) +
-                        (rowIndex < matrix.Length - 1 && colIndex < row.Length - 1 && matrix[rowIndex + 1][colIndex + 1] == '#' ? 1 : 0);
+                        scan(-1, -1) +
+                        scan(-1, 0) +
+                        scan(-1, 1) +
+                        scan(0, -1) +
+                        scan(0, 1) +
+                        scan(1, -1) +
+                        scan(1, 0) +
+                        scan(1, 1);
                     if (seat == 'L' && neighbours == 0)
                     {
                         return '#';
                     }
-                    else if (seat == '#' && neighbours >= 4)
+                    else if (seat == '#' && neighbours >= 5)
                     {
                         return 'L';
                     }
