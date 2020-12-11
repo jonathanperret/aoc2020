@@ -18,11 +18,10 @@ public static class Program
             line => line.ToCharArray()
         ).ToArray();
 
-        int occupied = 0;
         int iter = 0;
-        for (iter = 0; iter < 100000; iter++)
+        for (iter = 0; iter < 1000; iter++)
         {
-            matrix = matrix.AsParallel().Select((row, rowIndex) =>
+            var newMatrix = matrix.AsParallel().Select((row, rowIndex) =>
             {
                 return row.Select((seat, colIndex) =>
                 {
@@ -65,10 +64,15 @@ public static class Program
                 }).ToArray();
             }).ToArray();
 
-            int newOccupied = matrix.SelectMany(row => row).Count(c => c == '#');
-            if (newOccupied == occupied) break;
-            occupied = newOccupied;
+            // W("---");
+            // W(matrix.Select(row => row.ToDelimitedString("")).ToDelimitedString("\n"));
+
+            bool same = newMatrix.SelectMany(row => row).SequenceEqual(matrix.SelectMany(row => row));
+            if (same) break;
+
+            matrix = newMatrix;
         }
+        int occupied = matrix.SelectMany(row => row).Count(c => c == '#');
 
         W($"{occupied} after {iter}");
     }
