@@ -14,16 +14,51 @@ public static class Program
     {
         var text = File.ReadAllText("input.txt");
         var lines = File.ReadAllLines("input.txt");
-        var groups = lines.Split("");
-        var numbers = lines.Select(int.Parse).ToArray();
-        var blocks = numbers.Window(26);
-        int max = numbers.Max();
-        int min = numbers.Min();
-        var matrix = lines.Select(
-            line => line.ToCharArray()
-        ).ToArray();
 
-        int result = max - min;
-        W($"{result}");
+        int x = 0, y = 0;
+        int dx = 1, dy = 0;
+        foreach (string line in lines)
+        {
+            char move = line[0];
+            int dist = int.Parse(line.Substring(1));
+            switch (line)
+            {
+                case "L180":
+                case "R180":
+                    dx = -dx;
+                    dy = -dy;
+                    break;
+                case "L270":
+                case "R90":
+                    (dx, dy) = (dy, -dx);
+                    break;
+                case "R270":
+                case "L90":
+                    (dx, dy) = (-dy, dx);
+                    break;
+                default:
+                    switch (move)
+                    {
+                        case 'F':
+                            x += dist * dx;
+                            y += dist * dy;
+                            break;
+                        case 'N':
+                            y += dist;
+                            break;
+                        case 'S':
+                            y -= dist;
+                            break;
+                        case 'W':
+                            x -= dist;
+                            break;
+                        case 'E':
+                            x += dist;
+                            break;
+                    }
+                    break;
+            }
+            W($"{line} {x} {y} {dx} {dy} {Math.Abs(x) + Math.Abs(y)}");
+        }
     }
 }
