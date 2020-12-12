@@ -16,7 +16,7 @@ public static class Program
         var lines = File.ReadAllLines("input.txt");
 
         int x = 0, y = 0;
-        int dx = 1, dy = 0;
+        int wx = 10, wy = 1;
         foreach (string line in lines)
         {
             char move = line[0];
@@ -25,40 +25,40 @@ public static class Program
             {
                 case "L180":
                 case "R180":
-                    dx = -dx;
-                    dy = -dy;
+                    wx = -wx;
+                    wy = -wy;
                     break;
                 case "L270":
                 case "R90":
-                    (dx, dy) = (dy, -dx);
+                    (wx, wy) = (wy, -wx);
                     break;
                 case "R270":
                 case "L90":
-                    (dx, dy) = (-dy, dx);
+                    (wx, wy) = (-wy, wx);
                     break;
                 default:
                     switch (move)
                     {
                         case 'F':
-                            x += dist * dx;
-                            y += dist * dy;
+                            x += dist * wx;
+                            y += dist * wy;
                             break;
                         case 'N':
-                            y += dist;
+                            wy += dist;
                             break;
                         case 'S':
-                            y -= dist;
+                            wy -= dist;
                             break;
                         case 'W':
-                            x -= dist;
+                            wx -= dist;
                             break;
                         case 'E':
-                            x += dist;
+                            wx += dist;
                             break;
                     }
                     break;
             }
-            W($"{line} {x} {y} {dx} {dy} {Math.Abs(x) + Math.Abs(y)}");
+            W($"{line} {x} {y} {wx} {wy} {Math.Abs(x) + Math.Abs(y)}");
         }
     }
 }
