@@ -10,20 +10,19 @@ using static Util;
 
 public static class Program
 {
-    static BigInteger ExtendedGCD(BigInteger a, BigInteger b, out BigInteger x, out BigInteger y, out BigInteger g)
+    static void ExtendedGCD(BigInteger a, BigInteger b, out BigInteger x, out BigInteger y, out BigInteger g)
     {
         if (b == 0)
         {
             x = 1;
             y = 0;
             g = a;
-            return g;
+            return;
         }
         ExtendedGCD(b, a % b, out BigInteger x1, out BigInteger y1, out BigInteger d);
         x = y1;
         y = x1 - y1 * (a / b);
         g = d;
-        return g;
         //W($"{a} * {x} + {b} * {y} = {g}");
     }
 
@@ -49,24 +48,34 @@ public static class Program
         // var lines = File.ReadAllLines("example.txt").ToArray();
         var buses = lines[1].Split(",");
 
+
+        void step(BigInteger bus1period, BigInteger bus1offset, BigInteger bus2period, BigInteger bus2offset, out BigInteger newbusperiod, out BigInteger newbusoffset)
+        {
+            solve(bus1period, -bus2period, -bus1offset - bus2offset, out BigInteger x0b, out BigInteger y0b);
+            newbusperiod = bus1period * bus2period;
+            newbusoffset = bus1period * x0b + bus1offset;
+            W($"newbusoffset before modulo = {newbusoffset}");
+            newbusoffset = newbusoffset % newbusperiod;
+            W($"newbusoffset after modulo = {newbusoffset}");
+            if (newbusoffset < 0)
+            {
+                W($"newbusoffset is negative, adding period");
+                newbusoffset = newbusoffset + newbusperiod;
+            }
+            W($"t = n * {newbusperiod} + {newbusoffset}");
+            W($"t0 = {newbusoffset}");
+            // W($"t1 = {newbusperiod + newbusoffset}");
+        }
+
         // step(7, 0, 13, 1, out BigInteger period, out BigInteger offset);
         // step(period, offset, 59, 4, out BigInteger newbusperiod, out BigInteger newbusoffset);
 
-        var busesPO = buses.Select((busid, busoffset) =>
+        buses.Select((busid, busoffset) =>
         {
             W($"Adding bus {busid} at {busoffset}");
             return (busid == "x" ? -1 : BigInteger.Parse(busid), (BigInteger)busoffset);
         })
-        .Where(bus => bus.Item1 > 0).ToArray();
-
-        // busesPO = new (BigInteger, BigInteger)[] {
-        //     // (12_996_139, 2_501_577), (19, 32)
-        //     // (7,0),(13,1)
-        // };
-
-        int seen = 2;
-
-        var (finalperiod, finaloffset) = busesPO
+        .Where(bus => bus.Item1 > 0)
         .Aggregate((bus1, bus2) =>
         {
             W($"Merging bus {bus1} with {bus2}");
@@ -77,18 +86,8 @@ public static class Program
 
             W($"Result is bus {newperiod},{newoffset}");
 
-            W($"new bus equation is t={newperiod}*x - {newoffset}");
-            BigInteger t0 = newperiod - newoffset;
-            W($"smallest t satisfying is t0={t0}");
-
-            check(t0, busesPO.Take(seen));
-
-            seen++;
-
             return (newperiod, newoffset);
         });
-
-        BigInteger t0 = finaloffset;
 
 
         //        solve(91, -59, 10);
@@ -102,6 +101,10 @@ public static class Program
         // }).Consume();
 
 
+        // i_0 % t == 0 && i_1 % t == i_1 - 1 && i_4 % t == i_4 - 4
+
+        // i_0 % t == 0 && All(n > 1, i_n - i_n % t == 0)
+
         // 13y = 7x + 1
         // 7x - 13y = -1
 
@@ -111,12 +114,6 @@ public static class Program
         // 7x = 13y - 1
 
         // 7x - 13y = -1
-
-        // t = p1 * x - o1
-        // t = p2 * y - o2
-        // p1 * x - o1 = p2 * y - o2
-        // p1 * x - p2 * y = o1 - o2
-        // 7 * x - 13 * y = 0 - 1
 
         // => x = 13n - 2
         //    y = 7n - 1
@@ -181,101 +178,5 @@ public static class Program
 
         // 7  14 21 28 35 42
         // 13 26 39 52 
-
-
-        // 12996139, 10494562  with  19, 32
-
-        // t = 12996139 * x - 10494562
-        // t = 19 * y - 32
-        // 12996139 * x - 10494562 = 19 * y - 32
-        // 12996139 * x - 19 * y = 10494562 - 32 = 10494530
-
-        // p1 * x - p2 * y = o1 - o2
-        // 12996139 * x - 19 * y = 10494562 - 32
-
-
-    }
-
-    private static void step(BigInteger bus1period, BigInteger bus1offset, BigInteger bus2period, BigInteger bus2offset, out BigInteger newbusperiod, out BigInteger newbusoffset)
-    {
-        W($"equation for bus1: t = {bus1period} * x - {bus1offset}");
-        W($"equation for bus2: t = {bus2period} * y - {bus2offset}");
-        solve(bus1period, -bus2period, bus1offset - bus2offset, out BigInteger x0, out BigInteger y0);
-        W($"One solution is x0 = {x0}, y0 = {y0}");
-        BigInteger t0 = bus1period * x0 - bus1offset;
-        W($"  t0 = {bus1period} * {x0} - {bus1offset} = {bus1period * x0 - bus1offset} = {bus2period} * {y0} - {bus2offset} = {bus2period * y0 - bus2offset} = {t0}");
-
-        BigInteger xperiod = bus2period;
-        W($"Other values for x = {x0} + {xperiod} * n");
-        // W($"Other values for y = {y0} + {bus1period} * n");
-        // ExtendedGCD(bus1period, bus2period, out BigInteger _1, out BigInteger _2, out BigInteger periodgcd);
-        // W($"The GCD of {bus1period} and {bus2period} is {periodgcd}");
-        // BigInteger periodlcm = bus1period * bus2period / periodgcd;
-        // W($"The LCM of {bus1period} and {bus2period} is {periodlcm}");
-        W($"Other values for t using bus1 equation: t = {bus1period} * ({x0} + {xperiod} * n) - {bus1offset}");
-        W($"Other values for t using bus1 equation: t = {bus1period} * {x0} + {bus1period} * {xperiod} * n - {bus1offset}");
-        W($"Other values for t using bus1 equation: t = {bus1period} * {xperiod} * n + {bus1period} * {x0} - {bus1offset}");
-        W($"Other values for t using bus1 equation: t = {bus1period} * {xperiod} * n + {t0}");
-
-        newbusperiod = bus1period * xperiod;
-        W($"So new bus period is {bus1period} * {xperiod} = {newbusperiod}");
-        W($"times matching are t = {newbusperiod} * n + {t0}");
-        W($"t0 = {t0}");
-        BigInteger tmin = t0 % newbusperiod;
-        W($"tmin = {t0} % {newbusperiod} = {tmin}");
-        if (tmin < 0)
-        {
-            W($"tmin is negative, adding period");
-            tmin = tmin + newbusperiod;
-        }
-
-        W($"tmin = {tmin} should fit equation for bus1: {tmin} = {bus1period} * x - {bus1offset}");
-        W($"tmin = {tmin} should fit equation for bus1: {tmin} + {bus1offset} = {bus1period} * x");
-        W($"tmin = {tmin} should fit equation for bus1: ({tmin} + {bus1offset}) % {bus1period} = {(tmin + bus1offset) % bus1period} should be 0, x = {(tmin + bus1offset) / bus1period}");
-
-        W($"tmin = {tmin} should fit equation for bus2: {tmin} = {bus2period} * x - {bus2offset}");
-        W($"tmin = {tmin} should fit equation for bus2: {tmin} + {bus2offset} = {bus2period} * x");
-        W($"tmin = {tmin} should fit equation for bus2: ({tmin} + {bus2offset}) % {bus2period} = {(tmin + bus2offset) % bus2period} should be 0, x = {(tmin + bus2offset) / bus2period}");
-
-        W($"smallest positive t is tmin = {tmin}");
-        W($"checking bus1 against tmin"); checkBus((bus1period, bus1offset), tmin);
-        W($"checking bus2 against tmin"); checkBus((bus2period, bus2offset), tmin);
-        W($"checking bus1 against tmin + newbusperiod"); checkBus((bus1period, bus1offset), tmin + newbusperiod);
-        W($"checking bus2 against tmin + newbusperiod"); checkBus((bus2period, bus2offset), tmin + newbusperiod);
-
-        W($"New bus equation: t = {newbusperiod} * x + {tmin}");
-
-        newbusoffset = newbusperiod - tmin;
-        W($"So new bus offset is {newbusperiod} - t0 = {newbusoffset}");
-    }
-
-    private static bool check(BigInteger t0, IEnumerable<(BigInteger, BigInteger)> busesPO)
-    {
-        bool ok = busesPO.All(bus =>
-        {
-            bool result = checkBus(bus, t0);
-            return result;
-        });
-        return ok;
-    }
-
-    private static bool checkBus((BigInteger, BigInteger) bus, BigInteger t0)
-    {
-        var (period, offset) = bus;
-        bool result;
-        W($"Checking bus {period},{offset} against {t0}…");
-        BigInteger need_departure_at = t0 + offset;
-        W($" Need a departure at {t0} + {offset} = {need_departure_at}");
-        if (need_departure_at % period == 0)
-        {
-            W($"  bus leaves at {need_departure_at} = {need_departure_at / period} * {period}, all good");
-            result = true;
-        }
-        else
-        {
-            result = false;
-        }
-        W($" check is {(result ? "OK" : "KO")}");
-        return result;
     }
 }
