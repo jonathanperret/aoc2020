@@ -1,4 +1,6 @@
 using NUnit.Framework;
+using static Program;
+using System.IO;
 
 namespace tests
 {
@@ -12,7 +14,9 @@ namespace tests
         [Test]
         public void Test1()
         {
-            // Assert.AreEqual((1, 2, 'a', "baba"), Program.Line.Parse("1-2 a: baba"));
+            Assert.AreEqual(165, Program.solve(
+                File.ReadAllLines("/Users/jonathanperret/Documents/projects/aoc2020/day14/cli/example.txt")
+            ));
         }
 
     }
