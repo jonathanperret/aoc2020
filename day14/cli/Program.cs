@@ -12,7 +12,7 @@ public static class Program
 {
     public static long solve(string[] input)
     {
-        long[] memory = new long[100000];
+        var memory = new Dictionary<long, long>();
 
         string maskstr = "";
         foreach (string line in input)
@@ -28,9 +28,11 @@ public static class Program
                 long addr = long.Parse(addrstr);
                 string valuestr = line.Split(" = ")[1];
                 long value = long.Parse(valuestr);
-                long orgvalue = value;
 
                 long bitval = 1;
+
+                var addrlist = new List<long>();
+                addrlist.Add(addr);
                 for (int i = maskstr.Length - 1; i >= 0; i--)
                 {
                     char maskchar = maskstr[i];
@@ -38,24 +40,28 @@ public static class Program
                     switch (maskchar)
                     {
                         case '0':
-                            value = value & (~bitval);
                             break;
                         case '1':
-                            value = value | (bitval);
+                            addrlist = addrlist.Select(a => a | bitval).ToList();
                             break;
                         default:
+                            addrlist = addrlist.Select(a => a | bitval).Concat(addrlist.Select(a => a & (~bitval))).ToList();
                             break;
                     }
 
                     bitval *= 2;
                 }
-                W($"{orgvalue} -> {value}");
-                memory[addr] = value;
+                W($"Writing to {addrlist.ToDelimitedString(",")}");
+                foreach (var a in addrlist)
+                {
+                    memory[a] = value;
+                }
+
             }
 
         }
 
-        return memory.Sum();
+        return memory.Values.Sum();
     }
 
     static void Main(string[] args)
