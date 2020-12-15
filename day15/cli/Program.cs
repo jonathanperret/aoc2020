@@ -12,34 +12,26 @@ public static class Program
 {
     public static int Solve(int[] numbers, int count = 2020)
     {
-        int last = 0;
-        var lastpos = new Dictionary<int, int>();
-        var previouspos = new Dictionary<int, int>();
-        var ages = new Dictionary<int, int>();
+        var lastpos = new int[count];
+        int next = 0;
         for (int i = 0; i < count; i++)
         {
-            if (i < numbers.Length)
+            int last = next;
+            if (i >= numbers.Length)
             {
-                last = numbers[i];
+                if (lastpos[last] > 0)
+                    next = i - lastpos[last];
+                else
+                    next = 0;
             }
             else
             {
-                if (!previouspos.ContainsKey(last))
-                {
-                    last = 0;
-                }
-                else
-                {
-                    last = lastpos[last] - previouspos[last];
-                }
-
+                next = numbers[i];
             }
-            if (lastpos.ContainsKey(last))
-                previouspos[last] = lastpos[last];
             lastpos[last] = i;
-            W(last);
+            // W($"{next}");
         }
-        return last;
+        return next;
     }
 
     static void Main(string[] args)
