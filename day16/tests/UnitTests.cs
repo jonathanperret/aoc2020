@@ -14,7 +14,7 @@ namespace tests
         [Test]
         public void Test1()
         {
-            Assert.AreEqual(71, Solve(
+            Assert.AreEqual(11 * 13, Solve(
                 File.ReadAllLines("../../../../cli/example.txt")
             ));
         }
