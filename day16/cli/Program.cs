@@ -10,29 +10,6 @@ using static Util;
 
 public static class Program
 {
-    public static int CountBits(int value)
-    {
-        int count = 0;
-        while (value != 0)
-        {
-            count++;
-            value &= value - 1;
-        }
-        return count;
-    }
-
-    public static int FindBit(int value)
-    {
-        int bitval = 1;
-        int i = 0;
-        while ((value & bitval) == 0)
-        {
-            i++;
-            bitval *= 2;
-        }
-        return i;
-    }
-
     public static long Solve(string[] lines)
     {
         var groups = lines.Split("").ToArray();
@@ -69,43 +46,38 @@ public static class Program
         W(validTickets.Select(t => "(" + t.ToDelimitedString(",") + ")").ToDelimitedString(","));
 
         int fieldCount = tickets[0].Length;
-        int[] fieldPosConstraints = new int[fieldCount];
-        for (int i = 0; i < fieldCount; i++)
-        {
-            fieldPosConstraints[i] = (int)Math.Pow(2, fieldCount) - 1;
-        }
+        var positionSetByFieldIndex = tickets[0].Select((x) => Enumerable.ToHashSet(Enumerable.Range(0, fieldCount))).ToArray();
 
         foreach (var ticket in validTickets)
         {
-            int bitval = 1;
-            for (int i = 0; i < ticket.Length; i++)
+            for (int position = 0; position < ticket.Length; position++)
             {
-                for (int j = 0; j < fieldCount; j++)
+                for (int fieldIndex = 0; fieldIndex < fieldCount; fieldIndex++)
                 {
-                    if (!fields[j].Any(range => ticket[i] >= range.min && ticket[i] <= range.max))
+                    if (!fields[fieldIndex].Any(range => ticket[position] >= range.min && ticket[position] <= range.max))
                     {
-                        W($"field {j} can't be in position {i}, removing {bitval}");
-                        fieldPosConstraints[j] &= ~bitval;
-                        W($"{Convert.ToString(fieldPosConstraints[j], 2).PadLeft(fieldCount, '0')}");
+                        W($"field {fieldIndex} can't be in position {position}");
+                        positionSetByFieldIndex[fieldIndex].Remove(position);
                     }
                 }
-                bitval *= 2;
             }
         }
 
-        while (fieldPosConstraints.Any(c => CountBits(c) > 1))
+        W(positionSetByFieldIndex.Select((s, i) => $"{i}:{s.ToDelimitedString(",")}").ToDelimitedString("; "));
+
+        while (positionSetByFieldIndex.Any(s => s.Count > 1))
         {
-            for (int j = 0; j < fieldCount; j++)
+            for (int fieldIndex = 0; fieldIndex < fieldCount; fieldIndex++)
             {
-                if (CountBits(fieldPosConstraints[j]) == 1)
+                if (positionSetByFieldIndex[fieldIndex].Count == 1)
                 {
-                    int fieldPos = FindBit(fieldPosConstraints[j]);
-                    W($"found position for field {j}: {fieldPos}");
-                    for (int k = 0; k < fieldCount; k++)
+                    int fieldPos = positionSetByFieldIndex[fieldIndex].First();
+                    W($"found position for field {fieldIndex}: {fieldPos}");
+                    for (int otherFieldIndex = 0; otherFieldIndex < fieldCount; otherFieldIndex++)
                     {
-                        if (k != j)
+                        if (otherFieldIndex != fieldIndex)
                         {
-                            fieldPosConstraints[k] &= ~fieldPosConstraints[j];
+                            positionSetByFieldIndex[otherFieldIndex].Remove(fieldPos);
                         }
                     }
 
@@ -113,30 +85,28 @@ public static class Program
             }
         }
 
-        W(fieldPosConstraints.Select(c => Convert.ToString(c, 2).PadLeft(fieldCount, '0')).ToDelimitedString(","));
+        W(positionSetByFieldIndex.Select((s, i) => $"{i}:{s.ToDelimitedString(",")}").ToDelimitedString("; "));
 
-        var departurePos = fieldPosConstraints
-            .Select((c, j) => (constraint: c, index: j))
-            .Where(field => fieldNames[field.index].StartsWith("departure"))
-            .Select(field => FindBit(field.constraint));
+        var fieldPositions = positionSetByFieldIndex
+            .Select((s, j) => (position: s.First(), index: j))
+            .ToArray();
+
+        var departurePos = fieldPositions
+            .Where((position, fieldIndex) => fieldNames[fieldIndex].StartsWith("departure"))
+            .Select(field => field.position);
 
         W($"departure pos: {departurePos.ToDelimitedString(",")}");
 
-        var mydeparture = departurePos.Select(j => (long)myticket[j]);
+        var mydeparture = departurePos.Select(position => (long)myticket[position]);
 
         W($"my departure fields: {mydeparture.ToDelimitedString(",")}");
 
-        return mydeparture.Aggregate((a, b) => a * b);
+        return mydeparture.Product();
     }
 
     static void Main(string[] args)
     {
-        var text = File.ReadAllText("input.txt");
         var lines = File.ReadAllLines("input.txt");
-        // var numbers = lines.Select(int.Parse).ToArray();
-        // var blocks = numbers.Window(26);
-        // int max = numbers.Max();
-        // int min = numbers.Min();
 
         var result = Solve(lines);
         W($"{result}");
