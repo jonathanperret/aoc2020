@@ -12,21 +12,16 @@ public static class Program
 {
     public static int Solve(params string[] lines)
     {
-        var matrix = new bool[][][][] { new bool[][][] { lines.Select(l => l.Select(c => c == '#').ToArray()).ToArray() } };
-        bool[][][][] step(bool[][][][] matrix)
+        var matrix = lines.SelectMany(l => l.Select(c => c == '#')).ToArray();
+        bool[] step(bool[] matrix, int W, int H, int D, int T)
         {
-            var W = matrix[0][0][0].Length;
-            var H = matrix[0][0].Length;
-            var D = matrix[0].Length;
-            var T = matrix.Length;
-
             bool isactive(int x, int y, int z, int t)
             {
                 return x >= 0 && x < W &&
                     y >= 0 && y < H &&
                     z >= 0 && z < D &&
                     t >= 0 && t < T &&
-                    matrix[t][z][y][x];
+                    matrix[t * D * H * W + z * H * W + y * W + x];
             }
 
             int neighbors(int x, int y, int z, int t)
@@ -50,9 +45,9 @@ public static class Program
                 return total;
             }
 
-            var newmatrix = Enumerable.Range(-1, T + 2).Select(
-                t => Enumerable.Range(-1, D + 2).Select(
-                    z => Enumerable.Range(-1, H + 2).Select(
+            var newmatrix = Enumerable.Range(-1, T + 2).SelectMany(
+                t => Enumerable.Range(-1, D + 2).SelectMany(
+                    z => Enumerable.Range(-1, H + 2).SelectMany(
                         y => Enumerable.Range(-1, W + 2).Select(
                             x =>
                             {
@@ -66,24 +61,24 @@ public static class Program
                                     return n == 3;
                                 }
                             }
-                        ).ToArray()
-                    ).ToArray()
-                ).ToArray()
+                        )
+                    )
+                )
             ).ToArray();
 
             return newmatrix;
         }
 
-        bool[][][][] newmatrix = matrix;
-        for (int i = 0; i < 6; i++)
+        bool[] newmatrix = matrix;
+        for (int i = 0; i < 60; i++)
         {
             var st = System.Diagnostics.Stopwatch.StartNew();
-            newmatrix = step(newmatrix);
+            newmatrix = step(newmatrix, lines[0].Length + 2 * i, lines.Length + 2 * i, 1 + 2 * i, 1 + 2 * i);
             //Console.WriteLine(newmatrix.Select(dim => dim.Select(plane => plane.Select(row => row.Select(b => b ? '#' : '.').ToDelimitedString("")).ToDelimitedString("\n")).ToDelimitedString("\n===\n")).ToDelimitedString("\n\n\n"));
             Console.WriteLine($"--- {i} {System.GC.GetTotalMemory(true):0.#e+0} bytes {st.ElapsedMilliseconds}ms");
         }
 
-        return newmatrix.Sum(dim => dim.Sum(plane => plane.Sum(row => row.Count(c => c))));
+        return newmatrix.Count(c => c);
     }
 
     static void Main(string[] args)
