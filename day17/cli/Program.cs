@@ -77,12 +77,13 @@ public static class Program
         bool[][][][] newmatrix = matrix;
         for (int i = 0; i < 6; i++)
         {
+            var st = System.Diagnostics.Stopwatch.StartNew();
             newmatrix = step(newmatrix);
-            Console.WriteLine(newmatrix.Select(dim => dim.Select(plane => plane.Select(row => row.Select(b => b ? '#' : '.').ToDelimitedString("")).ToDelimitedString("\n")).ToDelimitedString("\n===\n")).ToDelimitedString("\n\n\n"));
-            Console.WriteLine("---");
+            //Console.WriteLine(newmatrix.Select(dim => dim.Select(plane => plane.Select(row => row.Select(b => b ? '#' : '.').ToDelimitedString("")).ToDelimitedString("\n")).ToDelimitedString("\n===\n")).ToDelimitedString("\n\n\n"));
+            Console.WriteLine($"--- {i} {System.GC.GetTotalMemory(true):0.#e+0} bytes {st.ElapsedMilliseconds}ms");
         }
 
-        return newmatrix.Select(dim => dim.Select(plane => plane.Select(row => row.Count(c => c)).Sum()).Sum()).Sum();
+        return newmatrix.Sum(dim => dim.Sum(plane => plane.Sum(row => row.Count(c => c))));
     }
 
     static void Main(string[] args)
