@@ -12,21 +12,21 @@ public static class Program
 {
     public static int Solve(params string[] lines)
     {
-        var matrix = new char[][][][] { new char[][][] { lines.Select(l => l.ToCharArray()).ToArray() } };
-        char[][][][] step(char[][][][] matrix)
+        var matrix = new bool[][][][] { new bool[][][] { lines.Select(l => l.Select(c => c == '#').ToArray()).ToArray() } };
+        bool[][][][] step(bool[][][][] matrix)
         {
             var W = matrix[0][0][0].Length;
             var H = matrix[0][0].Length;
             var D = matrix[0].Length;
             var T = matrix.Length;
 
-            int isactive(int x, int y, int z, int t)
+            bool isactive(int x, int y, int z, int t)
             {
-                return (x >= 0 && x < W &&
+                return x >= 0 && x < W &&
                     y >= 0 && y < H &&
                     z >= 0 && z < D &&
                     t >= 0 && t < T &&
-                    matrix[t][z][y][x] == '#') ? 1 : 0;
+                    matrix[t][z][y][x];
             }
 
             int neighbors(int x, int y, int z, int t)
@@ -42,7 +42,7 @@ public static class Program
                             {
                                 if (xx == x && yy == y && zz == z && tt == t)
                                     continue;
-                                total += isactive(xx, yy, zz, tt);
+                                total += isactive(xx, yy, zz, tt) ? 1 : 0;
                             }
                         }
                     }
@@ -57,14 +57,13 @@ public static class Program
                             x =>
                             {
                                 int n = neighbors(x, y, z, t);
-                                int c = isactive(x, y, z, t);
-                                if (c == 1)
+                                if (isactive(x, y, z, t))
                                 {
-                                    if (n == 2 || n == 3) return '#'; else return '.';
+                                    return (n == 2 || n == 3);
                                 }
                                 else
                                 {
-                                    if (n == 3) return '#'; else return '.';
+                                    return n == 3;
                                 }
                             }
                         ).ToArray()
@@ -75,15 +74,15 @@ public static class Program
             return newmatrix;
         }
 
-        char[][][][] newmatrix = matrix;
+        bool[][][][] newmatrix = matrix;
         for (int i = 0; i < 6; i++)
         {
             newmatrix = step(newmatrix);
-            Console.WriteLine(newmatrix.Select(dim => dim.Select(plane => plane.Select(row => row.ToDelimitedString("")).ToDelimitedString("\n")).ToDelimitedString("\n===\n")).ToDelimitedString("\n\n\n"));
+            Console.WriteLine(newmatrix.Select(dim => dim.Select(plane => plane.Select(row => row.Select(b => b ? '#' : '.').ToDelimitedString("")).ToDelimitedString("\n")).ToDelimitedString("\n===\n")).ToDelimitedString("\n\n\n"));
             Console.WriteLine("---");
         }
 
-        return newmatrix.Select(dim => dim.Select(plane => plane.Select(row => row.Count(c => c == '#')).Sum()).Sum()).Sum();
+        return newmatrix.Select(dim => dim.Select(plane => plane.Select(row => row.Count(c => c)).Sum()).Sum()).Sum();
     }
 
     static void Main(string[] args)
