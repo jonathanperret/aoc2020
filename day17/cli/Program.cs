@@ -21,11 +21,6 @@ public static class Program
 
         bool[] step(bool[] matrix, int W, int H, int D, int T)
         {
-            bool isactive_unsafe(int x, int y, int z, int t)
-            {
-                return
-                    matrix[index(x, y, z, t, W, H, D, T)];
-            }
             bool isactive(int x, int y, int z, int t)
             {
                 return
@@ -47,6 +42,10 @@ public static class Program
                 int yymax = (y + 1) < H ? y + 1 : H - 1;
                 int zzmax = (z + 1) < D ? z + 1 : D - 1;
                 int ttmax = (t + 1) < T ? t + 1 : T - 1;
+                int i = index(xxmin, yymin, zzmin, ttmin, W, H, D, T);
+                int xd = W - (xxmax - xxmin + 1);
+                int yd = (H - (yymax - yymin + 1)) * W;
+                int zd = (D - (zzmax - zzmin + 1)) * H * W;
                 for (int tt = ttmin; tt <= ttmax; tt++)
                 {
                     for (int zz = zzmin; zz <= zzmax; zz++)
@@ -55,12 +54,15 @@ public static class Program
                         {
                             for (int xx = xxmin; xx <= xxmax; xx++)
                             {
-                                if (xx == x && yy == y && zz == z && tt == t)
-                                    continue;
-                                total += isactive_unsafe(xx, yy, zz, tt) ? 1 : 0;
+                                if (!(xx == x && yy == y && zz == z && tt == t))
+                                    total += matrix[i] ? 1 : 0;
+                                i++;
                             }
+                            i += xd;
                         }
+                        i += yd;
                     }
+                    i += zd;
                 }
                 return total;
             }
