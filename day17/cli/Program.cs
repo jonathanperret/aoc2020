@@ -21,6 +21,11 @@ public static class Program
 
         bool[] step(bool[] matrix, int W, int H, int D, int T)
         {
+            bool isactive_unsafe(int x, int y, int z, int t)
+            {
+                return
+                    matrix[index(x, y, z, t, W, H, D, T)];
+            }
             bool isactive(int x, int y, int z, int t)
             {
                 return
@@ -34,17 +39,25 @@ public static class Program
             int neighbors(int x, int y, int z, int t)
             {
                 int total = 0;
-                for (int xx = x - 1; xx <= x + 1; xx++)
+                int xxmin = x <= 0 ? 0 : (x - 1);
+                int yymin = y <= 0 ? 0 : (y - 1);
+                int zzmin = z <= 0 ? 0 : (z - 1);
+                int ttmin = t <= 0 ? 0 : (t - 1);
+                int xxmax = (x + 1) < W ? x + 1 : W - 1;
+                int yymax = (y + 1) < H ? y + 1 : H - 1;
+                int zzmax = (z + 1) < D ? z + 1 : D - 1;
+                int ttmax = (t + 1) < T ? t + 1 : T - 1;
+                for (int xx = xxmin; xx <= xxmax; xx++)
                 {
-                    for (int yy = y - 1; yy <= y + 1; yy++)
+                    for (int yy = yymin; yy <= yymax; yy++)
                     {
-                        for (int zz = z - 1; zz <= z + 1; zz++)
+                        for (int zz = zzmin; zz <= zzmax; zz++)
                         {
-                            for (int tt = t - 1; tt <= t + 1; tt++)
+                            for (int tt = ttmin; tt <= ttmax; tt++)
                             {
                                 if (xx == x && yy == y && zz == z && tt == t)
                                     continue;
-                                total += isactive(xx, yy, zz, tt) ? 1 : 0;
+                                total += isactive_unsafe(xx, yy, zz, tt) ? 1 : 0;
                             }
                         }
                     }
@@ -111,7 +124,7 @@ public static class Program
     {
         var lines = File.ReadAllLines("input.txt");
 
-        var result = Solve(lines, 60);
+        var result = Solve(lines, 20);
         W($"{result}");
     }
 }
