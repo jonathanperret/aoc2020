@@ -14,7 +14,7 @@ namespace tests
         [Test]
         public void Test1()
         {
-            Assert.AreEqual(112, Solve(
+            Assert.AreEqual(848, Solve(
                 ".#.",
                 "..#",
                 "###"
