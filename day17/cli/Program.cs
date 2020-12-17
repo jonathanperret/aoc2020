@@ -47,13 +47,13 @@ public static class Program
                 int yymax = (y + 1) < H ? y + 1 : H - 1;
                 int zzmax = (z + 1) < D ? z + 1 : D - 1;
                 int ttmax = (t + 1) < T ? t + 1 : T - 1;
-                for (int xx = xxmin; xx <= xxmax; xx++)
+                for (int tt = ttmin; tt <= ttmax; tt++)
                 {
-                    for (int yy = yymin; yy <= yymax; yy++)
+                    for (int zz = zzmin; zz <= zzmax; zz++)
                     {
-                        for (int zz = zzmin; zz <= zzmax; zz++)
+                        for (int yy = yymin; yy <= yymax; yy++)
                         {
-                            for (int tt = ttmin; tt <= ttmax; tt++)
+                            for (int xx = xxmin; xx <= xxmax; xx++)
                             {
                                 if (xx == x && yy == y && zz == z && tt == t)
                                     continue;
