@@ -14,11 +14,11 @@ namespace tests
         [Test]
         public void Test1()
         {
-            Assert.AreEqual(848, Solve(
+            Assert.AreEqual(848, Solve(new string[]{
                 ".#.",
                 "..#",
                 "###"
-            ));
+            }));
         }
     }
 }
