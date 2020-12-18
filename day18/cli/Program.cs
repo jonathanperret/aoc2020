@@ -13,39 +13,41 @@ public static class Program
 {
     public static long Compute(string expr)
     {
-        var totals = new Stack<long>();
-        var ops = new Stack<char>();
+        var states = new Stack<(long sum, long product, char op)>();
         char op = '+';
-        long top = 0;
+        long sum = 0;
+        long product = 1;
         foreach (char c in expr.Replace(" ", ""))
         {
             switch (c)
             {
-                case '(':
-                    totals.Push(top);
-                    ops.Push(op);
-                    op = '+';
-                    top = 0;
-                    break;
-                case ')':
-                    long prevtop = totals.Pop();
-                    op = ops.Pop();
-                    if (op == '*') top = prevtop * top; else top = prevtop + top;
+                default:
+                    var value = long.Parse(c.ToString());
+                    if (op == '+') sum += value; else product = value;
                     break;
                 case '*':
-                    op = c;
+                    product *= sum;
+                    sum = 0;
+                    op = '+';
                     break;
                 case '+':
                     op = c;
                     break;
-                default:
-                    var value = long.Parse(c.ToString());
-                    if (op == '*') top *= value; else top += value;
+                case '(':
+                    states.Push((sum, product, op));
+                    op = '+';
+                    sum = 0;
+                    product = 1;
+                    break;
+                case ')':
+                    value = product * sum;
+                    (sum, product, op) = states.Pop();
+                    if (op == '+') sum += value; else product = value;
                     break;
             }
 
         }
-        return top;
+        return product * sum;
     }
     public static long Solve(string[] lines)
     {

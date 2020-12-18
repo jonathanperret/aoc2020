@@ -32,7 +32,7 @@ namespace tests
         [Test]
         public void MulSum()
         {
-            Assert.AreEqual(17, Compute("5 * 3 + 2"));
+            Assert.AreEqual(25, Compute("5 * 3 + 2"));
         }
 
 
@@ -63,7 +63,7 @@ namespace tests
         [Test]
         public void Test1()
         {
-            Assert.AreEqual(71, Compute("1 + 2 * 3 + 4 * 5 + 6"));
+            Assert.AreEqual(231, Compute("1 + 2 * 3 + 4 * 5 + 6"));
             // File.ReadAllLines("../../../../cli/example.txt")
         }
     }
