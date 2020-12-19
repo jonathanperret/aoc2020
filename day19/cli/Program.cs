@@ -35,11 +35,12 @@ public static class Program
                     {
                         var left = translate(rules["42"]);
                         var right = translate(rules["31"]);
-                        return "(" + Enumerable.Range(1, 5).Select(n =>
-                        {
-                            var repeat = "{" + n + "}";
-                            return "(" + left + repeat + right + repeat + ")";
-                        }).ToDelimitedString("|") + ")";
+
+                        return "("
+                            + "(?<Open>" + left + ")+"
+                            + "(?<Close-Open>" + right + ")+"
+                            + "(?(Open)(?!))"
+                            + ")";
                     }
                     return translate(rules[id]);
                 }).ToDelimitedString("");
