@@ -2,9 +2,7 @@
 using System.IO;
 using System.Linq;
 using Sprache;
-using System.Numerics;
 using MoreLinq;
-using System.Text.RegularExpressions;
 using System.Collections.Generic;
 using static Util;
 
@@ -13,56 +11,43 @@ public static class Program
     public static int Solve(string[] lines)
     {
         var groups = lines.Split("").ToArray();
-        var rules = Enumerable.ToDictionary(groups[0].Select(line => line.Split(": ")), pair => pair[0], pair => pair[1]);
+        var rules = groups[0].Select(line => line.Split(": ")).ToDictionary(
+            pair => int.Parse(pair[0]),
+            pair => pair[1]
+        );
         var messages = groups[1].ToArray();
 
-        string translate(string rule)
-        {
-            if (rule[0] == '"')
-            {
-                return rule[1].ToString();
-            }
-            var alts = rule.Split(" | ");
-            return "(" + alts.Select(alt =>
-            {
-                return alt.Split(" ").Select(id =>
-                {
-                    if (id == "8")
-                    {
-                        return $"({translate(rules["42"])}+)";
-                    }
-                    else if (id == "11")
-                    {
-                        var left = translate(rules["42"]);
-                        var right = translate(rules["31"]);
+        rules[8] = "42 | 42 8";
+        rules[11] = "42 31 | 42 11 31";
 
-                        return "("
-                            + "(?<Open>" + left + ")+"
-                            + "(?<Close-Open>" + right + ")+"
-                            + "(?(Open)(?!))"
-                            + ")";
-                    }
-                    return translate(rules[id]);
-                }).ToDelimitedString("");
-            }).ToDelimitedString("|") + ")";
+        IEnumerable<string> Only(string s) => new[] { s };
+
+        IEnumerable<string> Match(string alternatives, string rest)
+        {
+            return alternatives.Split(" | ").SelectMany(alt =>
+                alt.Split(" ").Aggregate(
+                    Only(rest),
+                    (rests, term) => rests.SelectMany(rest =>
+                    {
+                        if (term[0] == '"')
+                        {
+                            if (rest[0] == term[1])
+                                return Only(rest.Substring(1));
+                            else
+                                return Array.Empty<string>();
+                        }
+                        return Match(rules[int.Parse(term)], rest);
+                    })
+                )
+            );
         }
 
-        string pattern = $"^{translate(rules["0"])}$";
-
-        W(pattern);
-
-        var re = new Regex(pattern);
-
-        W(messages.Where(m => re.IsMatch(m)).ToDelimitedString("\n"));
-
-        return messages.Count(m => re.IsMatch(m));
+        return messages.Where(m => Match(rules[0], m + "$").Contains("$")).Count();
     }
 
     static void Main(string[] args)
     {
-        var text = File.ReadAllText("input.txt");
-        var lines = text.Trim().Split("\n");
-
+        var lines = File.ReadAllLines("input.txt");
         var result = Solve(lines);
         W($"{result}");
     }
