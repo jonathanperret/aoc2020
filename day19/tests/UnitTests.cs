@@ -11,7 +11,7 @@ namespace tests
         {
         }
 
-        [Test]
+        // [Test]
         public void TestPart1()
         {
             Assert.AreEqual(2, Solve(
@@ -19,7 +19,7 @@ namespace tests
             ));
         }
 
-        // [Test]
+        [Test]
         public void TestPart2()
         {
             Assert.AreEqual(12, Solve(

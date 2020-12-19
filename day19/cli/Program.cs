@@ -25,7 +25,24 @@ public static class Program
             var alts = rule.Split(" | ");
             return "(" + alts.Select(alt =>
             {
-                return alt.Split(" ").Select(id => translate(rules[id])).ToDelimitedString("");
+                return alt.Split(" ").Select(id =>
+                {
+                    if (id == "8")
+                    {
+                        return $"({translate(rules["42"])}+)";
+                    }
+                    else if (id == "11")
+                    {
+                        var left = translate(rules["42"]);
+                        var right = translate(rules["31"]);
+                        return "(" + Enumerable.Range(1, 5).Select(n =>
+                        {
+                            var repeat = "{" + n + "}";
+                            return "(" + left + repeat + right + repeat + ")";
+                        }).ToDelimitedString("|") + ")";
+                    }
+                    return translate(rules[id]);
+                }).ToDelimitedString("");
             }).ToDelimitedString("|") + ")";
         }
 
