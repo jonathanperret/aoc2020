@@ -12,9 +12,9 @@ namespace tests
         }
 
         [Test]
-        public void Test1()
+        public void TestPart1()
         {
-            var solution = Solve(
+            var solution = Part1(
                 File.ReadAllLines("../../../../cli/example.txt")
             );
             Assert.AreEqual(20899048083289, solution);
@@ -71,5 +71,66 @@ namespace tests
             Assert.IsTrue(MatchBottom(top, bottom));
             Assert.IsFalse(MatchBottom(bottom, top));
         }
+
+        private static readonly string[] expectedImage = new string[] {
+            ".####...#####..#...###..",
+            "#####..#..#.#.####..#.#.",
+            ".#.#...#.###...#.##.##..",
+            "#.#.##.###.#.##.##.#####",
+            "..##.###.####..#.####.##",
+            "...#.#..##.##...#..#..##",
+            "#.##.#..#.#..#..##.#.#..",
+            ".###.##.....#...###.#...",
+            "#.####.#.#....##.#..#.#.",
+            "##...#..#....#..#...####",
+            "..#.##...###..#.#####..#",
+            "....#.##.#.#####....#...",
+            "..##.##.###.....#.##..#.",
+            "#...#...###..####....##.",
+            ".#.##...#.##.#.#.###...#",
+            "#.###.#..####...##..#...",
+            "#.###...#.##...#.######.",
+            ".###.###.#######..#####.",
+            "..##.#..#..#.#######.###",
+            "#.#..##.########..#..##.",
+            "#.#####..#.#...##..#....",
+            "#....##..#.#########..##",
+            "#...#.....#..##...###.##",
+            "#..###....##.#...##.##.#",
+        };
+
+        private static readonly (int, int)[] knownSolution = new[] {
+            (1951,1),(2729,1),(2971,1),
+            (2311,1),(1427,1),(1489,1),
+            (3079,5),(2473,2),(1171,3),
+        };
+
+        [Test]
+        public void TestMakeImage()
+        {
+            var image = MakeImage(
+                File.ReadAllLines("../../../../cli/example.txt"),
+                3,
+                knownSolution
+            );
+            CollectionAssert.AreEqual(expectedImage, image);
+        }
+
+        [Test]
+        public void TestPart2()
+        {
+            var (positions, roughness) = Part2(
+                File.ReadAllLines("../../../../cli/example.txt"),
+                3,
+                new[] {
+                    (1951,1),(2729,1),(2971,1),
+                    (2311,1),(1427,1),(1489,1),
+                    (3079,5),(2473,2),(1171,3),
+                }
+            );
+            CollectionAssert.AreEqual(new[] { (2, 2), (1, 16) }, positions);
+            Assert.AreEqual(273, roughness);
+        }
+
     }
 }
