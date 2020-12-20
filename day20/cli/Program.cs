@@ -42,20 +42,6 @@ public static class Program
             return (width, placed);
         }
 
-        bool searchWidth = width == 0;
-        if (searchWidth)
-        {
-            for (int attemptedWidth = 1; attemptedWidth <= remaining.Length; attemptedWidth++)
-            {
-                var sol = Recurse(remaining, placed, attemptedWidth);
-                if (sol != null)
-                {
-                    return sol;
-                }
-            }
-            return null;
-        }
-
         for (int picked = 0; picked < remaining.Length; picked++)
         {
             var nextToPlace = remaining[picked];
@@ -69,7 +55,7 @@ public static class Program
             bool firstInRow = placed.Length % width == 0;
             foreach (var variant in variants)
             {
-                W($"placing {nextToPlace.id} in w={width}, {placed.Length} placed, {nextRemaining.Length} remaining");
+                W($"placing {nextToPlace.id} in {placed.Length} placed, {nextRemaining.Length} remaining");
                 bool canPlace =
                     firstRow ?
                         (firstInRow || MatchRight(placed[placed.Length - 1].matrix, variant)) :
@@ -78,10 +64,10 @@ public static class Program
                             (MatchBottom(placed[placed.Length - width].matrix, variant) && MatchRight(placed[placed.Length - 1].matrix, variant)));
                 if (!canPlace)
                 {
-                    W($"backtracking from w={width}, {placed.Length} placed");
+                    W($"backtracking from {placed.Length} placed");
                     continue;
                 }
-                W($"recursing with w={width}, {placed.Length} placed");
+                W($"recursing with {placed.Length} placed");
 
                 var sol = Recurse(nextRemaining, Enumerable.Append(placed, (nextToPlace.id, variant)).ToArray(), width);
                 if (sol != null)
@@ -103,7 +89,7 @@ public static class Program
 
             return (id: tileId, matrix: tileMatrix);
         }).ToArray();
-        var solution = Recurse(tiles, new (long id, string[] matrix)[] { }, 0);
+        var solution = Recurse(tiles, new (long id, string[] matrix)[] { }, (int)Math.Sqrt(tiles.Length));
         if (solution.HasValue)
         {
             var (width, placed) = solution.Value;
