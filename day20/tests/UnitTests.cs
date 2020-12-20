@@ -14,10 +14,10 @@ namespace tests
         [Test]
         public void TestPart1()
         {
-            var solution = Part1(
+            var (product, placement) = Part1(
                 File.ReadAllLines("../../../../cli/example.txt")
             );
-            Assert.AreEqual(20899048083289, solution);
+            Assert.AreEqual(20899048083289, product);
         }
 
         [Test]

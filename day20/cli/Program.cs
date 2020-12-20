@@ -32,7 +32,7 @@ public static class Program
 
 #nullable enable
 
-    public static (int width, (long id, int orientation, string[] matrix)[] placed)? Recurse((long id, string[] matrix)[] remaining, (long id, int orientation, string[] matrix)[] placed, int width)
+    public static (int width, (int id, int orientation, string[] matrix)[] placed)? Recurse((int id, string[] matrix)[] remaining, (int id, int orientation, string[] matrix)[] placed, int width)
     {
         if (remaining.Length == 0)
         {
@@ -52,7 +52,7 @@ public static class Program
             for (int orientation = 0; orientation < variants.Length; orientation++)
             {
                 var variant = variants[orientation];
-                W($"placing {nextToPlace.id},{orientation} in {placed.Length} placed, {nextRemaining.Length} remaining");
+                // W($"placing {nextToPlace.id},{orientation} in {placed.Length} placed, {nextRemaining.Length} remaining");
                 bool canPlace =
                     firstRow ?
                         (firstInRow || MatchRight(placed[placed.Length - 1].matrix, variant)) :
@@ -61,7 +61,7 @@ public static class Program
                             (MatchBottom(placed[placed.Length - width].matrix, variant) && MatchRight(placed[placed.Length - 1].matrix, variant)));
                 if (!canPlace)
                 {
-                    W($"backtracking from {placed.Length} placed");
+                    // W($"backtracking from {placed.Length} placed");
                     continue;
                 }
                 // W($"recursing with {placed.Length} placed");
@@ -135,26 +135,29 @@ public static class Program
         (1009,5),(2797,6),(3067,6)
     };
 
-    public static long Part1(string[] lines)
+    public static (long product, (int id, int orientation)[]?) Part1(string[] lines)
     {
         var tiles = ParseTiles(lines);
-        var solution = Recurse(tiles, new (long id, int orientation, string[] matrix)[] { }, (int)Math.Sqrt(tiles.Length));
+        var solution = Recurse(tiles, new (int id, int orientation, string[] matrix)[] { }, (int)Math.Sqrt(tiles.Length));
         if (solution.HasValue)
         {
             var (width, placed) = solution.Value;
 
             W(placed.Batch(3).Select(row => row.Select(tile => $"({tile.id},{tile.orientation})").ToDelimitedString(",")).ToDelimitedString(",\n"));
 
-            return placed[0].id * placed[width - 1].id * placed[placed.Length - width].id * placed[placed.Length - 1].id;
+            return (
+                (long)placed[0].id * placed[width - 1].id * placed[placed.Length - width].id * placed[placed.Length - 1].id,
+                placed.Select(t => (t.id, t.orientation)).ToArray()
+            );
         }
-        return -1;
+        return (-1, null);
     }
 
-    private static (long id, string[] matrix)[] ParseTiles(string[] lines)
+    private static (int id, string[] matrix)[] ParseTiles(string[] lines)
     {
         return lines.Split("").Select(tileLines =>
         {
-            long tileId = long.Parse(tileLines.ElementAt(0).Split(' ', ':')[1]);
+            int tileId = int.Parse(tileLines.ElementAt(0).Split(' ', ':')[1]);
             string[] tileMatrix = tileLines.Skip(1).ToArray();
 
             return (id: tileId, matrix: tileMatrix);
@@ -268,8 +271,11 @@ public static class Program
     {
         var lines = File.ReadAllLines("input.txt");
 
-        // var result = Part1(lines);
-        var result = Part2(lines, 12, knownSolution);
-        W($"{result.roughness}");
+        var (product, placement) = Part1(lines);
+        if (placement != null)
+        {
+            var result = Part2(lines, 12, placement);
+            W($"{result.roughness}");
+        }
     }
 }
