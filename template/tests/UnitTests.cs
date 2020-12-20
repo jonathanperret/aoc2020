@@ -12,9 +12,9 @@ namespace tests
         }
 
         [Test]
-        public void Test1()
+        public void TestPart1()
         {
-            Assert.AreEqual(11, Solve(
+            Assert.AreEqual(11, Part1(
                 File.ReadAllLines("../../../../cli/example.txt")
             ));
         }

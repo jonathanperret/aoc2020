@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.IO;
 using System.Linq;
 using Sprache;
@@ -10,8 +10,10 @@ using static Util;
 
 public static class Program
 {
-    public static int Solve(string[] lines)
+    public static int Part1(string[] lines)
     {
+        var groups = lines.Split("");
+
         return lines.Length;
     }
 
@@ -19,13 +21,12 @@ public static class Program
     {
         var text = File.ReadAllText("input.txt");
         var lines = File.ReadAllLines("input.txt");
-        var groups = lines.Split("");
         // var numbers = lines.Select(int.Parse).ToArray();
         // var blocks = numbers.Window(26);
         // int max = numbers.Max();
         // int min = numbers.Min();
 
-        var result = Solve(lines);
-        W($"{result}");
+        // var result = Part1(lines);
+        // W($"{result}");
     }
 }
