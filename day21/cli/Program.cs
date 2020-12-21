@@ -3,10 +3,13 @@ using System.IO;
 using System.Linq;
 using Sprache;
 using System.Numerics;
-using MoreLinq;
+using static MoreLinq.Extensions.ToDelimitedStringExtension;
+using static MoreLinq.Extensions.ForEachExtension;
+using static MoreLinq.Extensions.PartitionExtension;
 using System.Text.RegularExpressions;
 using System.Collections.Generic;
 using static Util;
+using System.Collections.Immutable;
 
 public static class Program
 {
@@ -20,81 +23,20 @@ public static class Program
         return new IngredientList(ing.Split(" ").Select(n => new Ingredient(n)).ToArray(), allerg[..^1].Split(", ").Select(n => new Allergen(n)).ToArray());
     }
 
-    public static int Part1(string[] lines)
+    public static (int, string) Solve(string[] lines)
     {
-        var groups = lines.Split("");
         var lists = lines.Select(Parse);
 
-        Dictionary<Ingredient, HashSet<Allergen>> mayContain = new();
-        Dictionary<Allergen, HashSet<Ingredient>> mayBeContainedIn = new();
-        Dictionary<Ingredient, Allergen> mustContain = new();
-
-        foreach (var list in lists)
-        {
-            foreach (var ing in list.ingredients)
-            {
-                if (!mayContain.TryGetValue(ing, out var allergenSet))
-                {
-                    allergenSet = new();
-                    mayContain.Add(ing, allergenSet);
-                }
-                foreach (var allerg in list.allergens)
-                {
-                    allergenSet.Add(allerg);
-                }
-            }
-            foreach (var allerg in list.allergens)
-            {
-                if (!mayBeContainedIn.TryGetValue(allerg, out var ingSet))
-                {
-                    ingSet = new(list.ingredients);
-                    mayBeContainedIn.Add(allerg, ingSet);
-                }
-                else
-                {
-                    ingSet.IntersectWith(list.ingredients);
-                    W($"{allerg} may now be only in {ingSet.ToDelimitedString(", ")}");
-                }
-            }
-        }
-
-        // mayContain.ForEach(kv =>
-        // {
-        //     W($"{kv.Key} may contain {kv.Value.ToDelimitedString(", ")}");
-        // });
-        W("---");
-        mayBeContainedIn.ForEach(kv =>
-        {
-            W($"{kv.Key} may be contained in {kv.Value.ToDelimitedString(", ")}");
-        });
-        W("---");
-
-
-        bool again = true;
-        HashSet<Allergen> found = new();
-        while (again)
-        {
-            again = false;
-            foreach (Allergen allerg in mayBeContainedIn.Keys)
-            {
-                if (found.Contains(allerg)) continue;
-                var ingSet = mayBeContainedIn[allerg];
-                if (ingSet.Count == 1)
-                {
-                    var ing = ingSet.First();
-                    W($"{allerg} must be in {ing}");
-                    foreach (var otherAllerg in mayBeContainedIn.Keys)
-                    {
-                        if (otherAllerg == allerg || found.Contains(otherAllerg)) continue;
-                        mayBeContainedIn[otherAllerg].Remove(ing);
-                    }
-                    mustContain[ing] = allerg;
-
-                    found.Add(allerg);
-                    again = true;
-                }
-            }
-        }
+        var mayBeContainedIn = lists
+            .SelectMany(list => list.allergens
+                .Select(allergen => (allergen, ingredients: list.ingredients.ToImmutableHashSet())))
+            .GroupBy(keySelector: t => t.allergen,
+                elementSelector: t => t.ingredients,
+                resultSelector: (allergen, ingredientLists) => (
+                    allergen,
+                    ingredients: ingredientLists.Aggregate((set1, set2) => set1.Intersect(set2))
+                ))
+            .ToImmutableDictionary(t => t.allergen, t => t.ingredients);
 
         W("---");
         mayBeContainedIn.ForEach(kv =>
@@ -103,14 +45,18 @@ public static class Program
         });
         W("---");
 
-        // mayContain.ForEach(kv =>
-        // {
-        //     W($"{kv.Key} may contain {kv.Value.ToDelimitedString(", ")}");
-        // });
-        // mayBeContained.ForEach(kv =>
-        // {
-        //     W($"{kv.Key} may be contained in {kv.Value.ToDelimitedString(", ")}");
-        // });
+        var mustBeContainedIn = ImmutableDictionary.Create<Allergen, Ingredient>();
+
+        while (mayBeContainedIn.Count > 0)
+        {
+            var (certain, incertain) = mayBeContainedIn.Partition(kv => kv.Value.Count == 1);
+            mustBeContainedIn = mustBeContainedIn.SetItems(
+                certain.Select(kv => new KeyValuePair<Allergen, Ingredient>(kv.Key, kv.Value.First()))
+            );
+            mayBeContainedIn = incertain
+                .Select(kv => (allergen: kv.Key, ingredients: kv.Value.Except(mustBeContainedIn.Values)))
+                .ToImmutableDictionary(t => t.allergen, t => t.ingredients);
+        }
 
         int safeIngredientCount = 0;
 
@@ -118,7 +64,7 @@ public static class Program
         {
             foreach (var ing in list.ingredients)
             {
-                if (!mustContain.ContainsKey(ing))
+                if (!mustBeContainedIn.ContainsValue(ing))
                 {
                     // W($"{ing} is safe");
                     safeIngredientCount++;
@@ -126,23 +72,18 @@ public static class Program
             }
         }
 
-        W(mustContain.OrderBy(kv => kv.Value.name)
-        .Select(kv => kv.Key.name)
-        .ToDelimitedString(","));
+        string canonicalList = mustBeContainedIn.OrderBy(kv => kv.Key.name)
+                .Select(kv => kv.Value.name)
+                .ToDelimitedString(",");
 
-
-        return safeIngredientCount;
+        return (safeIngredientCount, canonicalList);
     }
 
     static void Main(string[] args)
     {
         var lines = File.ReadAllLines("input.txt");
-        // var numbers = lines.Select(int.Parse).ToArray();
-        // var blocks = numbers.Window(26);
-        // int max = numbers.Max();
-        // int min = numbers.Min();
 
-        var result = Part1(lines);
+        var result = Solve(lines);
         W($"{result}");
     }
 }
