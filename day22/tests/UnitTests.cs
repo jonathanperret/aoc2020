@@ -5,6 +5,7 @@ using static Util;
 using System.Collections.Generic;
 using System.Linq;
 using MoreLinq;
+using Card = System.Byte;
 
 namespace tests
 {
@@ -18,9 +19,9 @@ namespace tests
         [Test]
         public void ScoreTest()
         {
-            Assert.AreEqual(306, Score(
-                (new[] { 3, 2, 10, 6, 8, 5, 9, 4, 7, 1 }).Select(i => (char)i).ToDelimitedString("")
-            ));
+            Assert.AreEqual(306, new Deck(
+                (new[] { 3, 2, 10, 6, 8, 5, 9, 4, 7, 1 }).Select(i => (Card)i).ToArray()
+            ).Score);
         }
 
         [Test]
