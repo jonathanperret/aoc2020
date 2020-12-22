@@ -20,9 +20,9 @@ namespace tests
         }
 
         [Test]
-        public void TestPart1()
+        public void TestPart2()
         {
-            Assert.AreEqual(306, Part1(
+            Assert.AreEqual(291, Part2(
                 File.ReadAllText("../../../../cli/example.txt")
             ));
         }
