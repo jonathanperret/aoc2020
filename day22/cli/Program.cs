@@ -7,7 +7,6 @@ using MoreLinq;
 using System.Text.RegularExpressions;
 using System.Collections.Generic;
 using static Util;
-using System.Collections.Immutable;
 
 public static class Program
 {
@@ -16,95 +15,56 @@ public static class Program
         return deck.Reverse().Select((c, i) => c * (i + 1)).Sum();
     }
 
-    public class GameState
-    {
-        public ImmutableQueue<int> deck1;
-        public ImmutableQueue<int> deck2;
-        public string GameStr => $"{deck1.ToDelimitedString(",")}|{deck2.ToDelimitedString(",")}";
-
-        public override int GetHashCode()
-        {
-            int hash = 0;
-            foreach (int c in deck1)
-            {
-                hash = 31 * hash + c;
-            }
-            hash = 31 * hash;
-            foreach (int c in deck2)
-            {
-                hash = 31 * hash + c;
-            }
-            // W($"Hashed {GameStr} to {hash}");
-            return hash;
-        }
-
-        public override bool Equals(object obj)
-        {
-            if (obj == null || GetType() != obj.GetType())
-            {
-                return false;
-            }
-
-            GameState other = obj as GameState;
-
-            return deck1.SequenceEqual(other.deck1) && deck2.SequenceEqual(other.deck2);
-        }
-    }
-
     public static int Part2(string text)
     {
-        var solved = new Dictionary<GameState, (int, ImmutableQueue<int>)>();
+        var solved = new Dictionary<string, int>();
 
-        (int, ImmutableQueue<int>) Game(GameState initialState, int depth)
+        int Game(Queue<int> deck1, Queue<int> deck2, int depth)
         {
-            if (solved.TryGetValue(initialState, out var initialResult))
-            {
-                // W($"found cached game, winner is {initialResult.Item1}");
-                return initialResult;
-            }
             int winner = -1;
             int round = 1;
-            var seen = new HashSet<GameState>();
-            GameState state = initialState;
-            while (!(state.deck1.IsEmpty || state.deck2.IsEmpty))
+            var seen = new HashSet<string>();
+            string initialGameStr = GetGameStr(deck1, deck2);
+            string gameStr = "";
+            while (deck1.Count > 0 && deck2.Count > 0)
             {
-                if (solved.TryGetValue(state, out var result))
+                gameStr = GetGameStr(deck1, deck2);
+                if (solved.TryGetValue(gameStr, out var result))
                 {
                     // W($"found cached game, winner is {result.Item1}");
                     if (round > 1)
                     {
                         // does not really speed up anything!
-                        // foreach (string s in seen) if (!solved.ContainsKey(s)) solved[s] = result;
+                        foreach (string s in seen) if (!solved.ContainsKey(s)) solved[s] = result;
 
-                        solved[state] = result;
+                        solved[initialGameStr] = result;
                     }
                     // W($"{solved.Count} games solved");
                     return result;
                 }
 
-                // W($"game {depth} round {round}: player 1's deck: {state.deck1.ToDelimitedString(", ")}");
-                // W($"game {depth} round {round}: player 2's deck: {state.deck2.ToDelimitedString(", ")}");
+                // W($"game {depth} round {round}: player 1's deck: {deck1.ToDelimitedString(", ")}");
+                // W($"game {depth} round {round}: player 2's deck: {deck2.ToDelimitedString(", ")}");
 
-                if (!seen.Add(state))
+                if (seen.Contains(gameStr))
                 {
                     // W($"game {depth} round {round}: infinite game detected!");
                     winner = 1;
                     break;
                 }
+                seen.Add(gameStr);
 
-                var newdeck1 = state.deck1.Dequeue(out var card1);
-                var newdeck2 = state.deck2.Dequeue(out var card2);
+                var card1 = deck1.Dequeue();
+                var card2 = deck2.Dequeue();
                 // W($"game {depth} round {round}: player 1 plays {card1}");
                 // W($"game {depth} round {round}: player 2 plays {card2}");
 
-                if (card1 <= newdeck1.Count() && card2 <= newdeck2.Count())
+                if (card1 <= deck1.Count && card2 <= deck2.Count)
                 {
-                    var subdeck1 = ImmutableQueue.CreateRange<int>(newdeck1.Take(card1));
-                    var subdeck2 = ImmutableQueue.CreateRange<int>(newdeck2.Take(card2));
+                    var subdeck1 = new Queue<int>(deck1.Take((int)card1));
+                    var subdeck2 = new Queue<int>(deck2.Take((int)card2));
 
-                    var substate = new GameState() { deck1 = subdeck1, deck2 = subdeck2 };
-
-                    (winner, _) = Game(substate, depth + 1);
+                    winner = Game(subdeck1, subdeck2, depth + 1);
                 }
                 else
                 {
@@ -119,45 +79,43 @@ public static class Program
                 }
                 if (winner == 1)
                 {
-                    state = new GameState()
-                    {
-                        deck1 = newdeck1.Enqueue(card1).Enqueue(card2),
-                        deck2 = newdeck2,
-                    };
+                    deck1.Enqueue(card1);
+                    deck1.Enqueue(card2);
                 }
                 else
                 {
-                    state = new GameState()
-                    {
-                        deck1 = newdeck1,
-                        deck2 = newdeck2.Enqueue(card2).Enqueue(card1),
-                    };
+                    // W($"game {depth} round {round}: player 2 wins round");
+                    deck2.Enqueue(card2);
+                    deck2.Enqueue(card1);
                 }
 
                 round++;
             }
 
+            static string GetGameStr(Queue<int> deck1, Queue<int> deck2)
+            {
+                return $"{deck1.ToDelimitedString(",")}|{deck2.ToDelimitedString(",")}";
+            }
+
             // W($"game {depth}: player {winner} wins game");
-            var winnerDeck = state.deck2.IsEmpty ? state.deck1 : state.deck2;
-            var finalResult = (winner, winnerDeck);
+            var winnerDeck = deck1.Count > 0 ? deck1 : deck2;
             // does not really speed up anything!
             // foreach (string s in seen) if (!solved.ContainsKey(s)) solved[s] = finalResult;
-            solved[initialState] = finalResult;
+            solved[initialGameStr] = winner;
             // W($"{solved.Count} games solved");
-            return finalResult;
+            return winner;
         }
 
 
         var lines = text.Trim().Split("\n");
         var groups = lines.Split("").ToArray();
 
-        var deck1 = ImmutableQueue.Create<int>(groups[0].Skip(1).Select(int.Parse).ToArray());
-        var deck2 = ImmutableQueue.Create<int>(groups[1].Skip(1).Select(int.Parse).ToArray());
-        var state = new GameState() { deck1 = deck1, deck2 = deck2 };
+        var deck1 = new Queue<int>(groups[0].Skip(1).Select(int.Parse).ToArray());
+        var deck2 = new Queue<int>(groups[1].Skip(1).Select(int.Parse).ToArray());
 
-        var (winner, winnerDeck) = Game(state, depth: 0);
+        var winner = Game(deck1, deck2, depth: 0);
 
-        return Score(winnerDeck);
+        return Score(winner == 1 ? deck1 : deck2);
     }
 
     static void Main(string[] args)
