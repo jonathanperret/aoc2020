@@ -10,41 +10,40 @@ using static Util;
 
 public static class Program
 {
-    public static int Score(IEnumerable<int> deck)
+    public static int Score(string deck)
     {
-        return deck.Reverse().Select((c, i) => c * (i + 1)).Sum();
+        return deck.Reverse().Select((c, i) => (int)c * (i + 1)).Sum();
     }
 
     public static int Part2(string text)
     {
-        var solved = new Dictionary<string, int>();
+        var solved = new Dictionary<(string, string), int>();
 
-        int Game(Queue<int> deck1, Queue<int> deck2, int depth)
+        (int winner, string winnerDeck) Game(string deck1, string deck2, int depth)
         {
             int winner = -1;
             int round = 1;
-            var seen = new HashSet<string>();
-            string initialGameStr = GetGameStr(deck1, deck2);
-            string gameStr = "";
-            while (deck1.Count > 0 && deck2.Count > 0)
+            var seen = new HashSet<(string, string)>();
+            var initialGameStr = GetGameStr(deck1, deck2);
+            while (deck1.Length > 0 && deck2.Length > 0)
             {
-                gameStr = GetGameStr(deck1, deck2);
+                var gameStr = GetGameStr(deck1, deck2);
                 if (solved.TryGetValue(gameStr, out var result))
                 {
                     // W($"found cached game, winner is {result.Item1}");
                     if (round > 1)
                     {
                         // does not really speed up anything!
-                        foreach (string s in seen) if (!solved.ContainsKey(s)) solved[s] = result;
+                        // foreach (string s in seen) if (!solved.ContainsKey(s)) solved[s] = result;
 
                         solved[initialGameStr] = result;
                     }
                     // W($"{solved.Count} games solved");
-                    return result;
+                    return (result, null);
                 }
 
-                // W($"game {depth} round {round}: player 1's deck: {deck1.ToDelimitedString(", ")}");
-                // W($"game {depth} round {round}: player 2's deck: {deck2.ToDelimitedString(", ")}");
+                // W($"game {depth} round {round}: player 1's deck: {deck1.Select(c => (int)c).ToDelimitedString(", ")}");
+                // W($"game {depth} round {round}: player 2's deck: {deck2.Select(c => (int)c).ToDelimitedString(", ")}");
 
                 if (seen.Contains(gameStr))
                 {
@@ -54,17 +53,17 @@ public static class Program
                 }
                 seen.Add(gameStr);
 
-                var card1 = deck1.Dequeue();
-                var card2 = deck2.Dequeue();
-                // W($"game {depth} round {round}: player 1 plays {card1}");
-                // W($"game {depth} round {round}: player 2 plays {card2}");
+                var card1 = deck1[0];
+                var card2 = deck2[0];
+                // W($"game {depth} round {round}: player 1 plays {(int)card1}");
+                // W($"game {depth} round {round}: player 2 plays {(int)card2}");
 
-                if (card1 <= deck1.Count && card2 <= deck2.Count)
+                if (card1 < deck1.Length && card2 < deck2.Length)
                 {
-                    var subdeck1 = new Queue<int>(deck1.Take((int)card1));
-                    var subdeck2 = new Queue<int>(deck2.Take((int)card2));
+                    var subdeck1 = deck1[1..(card1 + 1)];
+                    var subdeck2 = deck2[1..(card2 + 1)];
 
-                    winner = Game(subdeck1, subdeck2, depth + 1);
+                    (winner, _) = Game(subdeck1, subdeck2, depth + 1);
                 }
                 else
                 {
@@ -79,43 +78,42 @@ public static class Program
                 }
                 if (winner == 1)
                 {
-                    deck1.Enqueue(card1);
-                    deck1.Enqueue(card2);
+                    deck1 = deck1[1..] + card1 + card2;
+                    deck2 = deck2[1..];
                 }
                 else
                 {
-                    // W($"game {depth} round {round}: player 2 wins round");
-                    deck2.Enqueue(card2);
-                    deck2.Enqueue(card1);
+                    deck1 = deck1[1..];
+                    deck2 = deck2[1..] + card2 + card1;
                 }
 
                 round++;
             }
 
-            static string GetGameStr(Queue<int> deck1, Queue<int> deck2)
+            static (string, string) GetGameStr(string deck1, string deck2)
             {
-                return $"{deck1.ToDelimitedString(",")}|{deck2.ToDelimitedString(",")}";
+                return (deck1, deck2);
             }
 
             // W($"game {depth}: player {winner} wins game");
-            var winnerDeck = deck1.Count > 0 ? deck1 : deck2;
+
             // does not really speed up anything!
             // foreach (string s in seen) if (!solved.ContainsKey(s)) solved[s] = finalResult;
             solved[initialGameStr] = winner;
             // W($"{solved.Count} games solved");
-            return winner;
+            return (winner, winner == 1 ? deck1 : deck2);
         }
 
 
         var lines = text.Trim().Split("\n");
         var groups = lines.Split("").ToArray();
 
-        var deck1 = new Queue<int>(groups[0].Skip(1).Select(int.Parse).ToArray());
-        var deck2 = new Queue<int>(groups[1].Skip(1).Select(int.Parse).ToArray());
+        var deck1 = groups[0].Skip(1).Select(int.Parse).Select(i => (char)i).ToDelimitedString("");
+        var deck2 = groups[1].Skip(1).Select(int.Parse).Select(i => (char)i).ToDelimitedString("");
 
-        var winner = Game(deck1, deck2, depth: 0);
+        var (winner, winnerDeck) = Game(deck1, deck2, depth: 0);
 
-        return Score(winner == 1 ? deck1 : deck2);
+        return Score(winnerDeck);
     }
 
     static void Main(string[] args)

@@ -3,6 +3,8 @@ using static Program;
 using System.IO;
 using static Util;
 using System.Collections.Generic;
+using System.Linq;
+using MoreLinq;
 
 namespace tests
 {
@@ -17,7 +19,7 @@ namespace tests
         public void ScoreTest()
         {
             Assert.AreEqual(306, Score(
-                new[] { 3, 2, 10, 6, 8, 5, 9, 4, 7, 1 }
+                (new[] { 3, 2, 10, 6, 8, 5, 9, 4, 7, 1 }).Select(i => (char)i).ToDelimitedString("")
             ));
         }
 
