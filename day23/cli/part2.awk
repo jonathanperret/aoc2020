@@ -1,0 +1,1 @@
+BEGIN{FS=""}{max=1000000;for(i=1;i<=max;i++)c[i]=(i<=NF?$i:i);for(i=1;i<=length(c);i++) n[c[i]]=c[i<max?i+1:1]; current=c[1]; for(i=1;i<=10*max;i++) { p1=n[current];p2=n[p1];p3=n[p2];n[current]=n[p3];d=current;while(d==current||d==p1||d==p2||d==p3)d=(d>1)?d-1:max; n[p3]=n[d];n[d]=p1; current=n[current];} print n[1],n[n[1]],n[1]*n[n[1]]; }
