@@ -75,7 +75,7 @@ public static class Program
         return After1(next);
     }
 
-    public static string Part2(string sequence)
+    public static (int, int) Part2(string sequence)
     {
         int maxVal = 1000000;
         var cups = sequence.Trim().Select(c => (int)c - '0')
@@ -83,8 +83,14 @@ public static class Program
             .ToArray();
 
         W($"max={cups.Max()} count={cups.Length}");
+        var next = BuildNext(cups);
+        int current = cups[0];
+        for (int i = 0; i < 100000000; i++)
+        {
+            current = Move(next, current);
+        }
 
-        return "oioi";
+        return (next[1], next[next[1]]);
     }
 
     static void Main(string[] args)
@@ -95,7 +101,7 @@ public static class Program
         // int max = numbers.Max();
         // int min = numbers.Min();
 
-        var result = Part1(text);
-        W($"{result}");
+        var result = Part2(text);
+        W($"{result} {(long)result.Item1 * (long)result.Item2}");
     }
 }

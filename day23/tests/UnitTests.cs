@@ -20,13 +20,13 @@ namespace tests
             ));
         }
 
-        // [Test]
-        // public void TestPart2()
-        // {
-        //     Assert.AreEqual((934001, 159792), Part2(
-        //         File.ReadAllText("../../../../cli/example.txt")
-        //     ));
-        // }
+        [Test]
+        public void TestPart2()
+        {
+            Assert.AreEqual((934001, 159792), Part2(
+                File.ReadAllText("../../../../cli/example.txt")
+            ));
+        }
 
         [Test]
         public void TestAfter1()
