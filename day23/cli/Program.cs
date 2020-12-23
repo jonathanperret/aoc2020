@@ -15,50 +15,76 @@ public static class Program
         // W(s);
     }
 
-    public static int maxVal = 9;
-    public static int[] Move(int[] cups)
+    public static int Move(int[] next, int current)
     {
-        int currentCup = cups[0];
-        int[] picked = cups[1..4];
-        D($"current {currentCup} picked {picked.ToDelimitedString(",")}");
-        D($"remaining {cups[4..].ToDelimitedString(",")}");
-        int dest = currentCup;
-        int destpos = -1;
-        int t = 0;
-        while (destpos < 0 && t++ < 2 * maxVal)
+        int maxVal = next.Length - 1;
+        int picked1 = next[current];
+        int picked2 = next[picked1];
+        int picked3 = next[picked2];
+        // remove picked from circle
+        next[current] = next[picked3];
+        // pick destination
+        int dest = current;
+        while (true)
         {
-            dest = dest == 1 ? maxVal : (char)(dest - 1);
-            destpos = Array.IndexOf(cups, dest, 4) - 4;
+            dest = dest > 1 ? dest - 1 : maxVal;
+            if (dest != picked1 && dest != picked2 && dest != picked3)
+                break;
         }
-        D($"dest={dest} destpos={destpos} t={t}");
-        int[] result = new int[cups.Length];
-        result[^1] = currentCup;
-        Array.Copy(cups, 4, result, 0, destpos + 1);
-        Array.Copy(picked, 0, result, destpos + 1, 3);
-        Array.Copy(cups, 4 + destpos + 1, result, destpos + 4, cups.Length - 4 - destpos - 1);
-        D($"result={result.ToDelimitedString(",")}");
-        return result;
+        // insert picked right of dest
+        next[picked3] = next[dest];
+        next[dest] = picked1;
+
+        return next[current];
     }
 
-    public static string After1(int[] cups)
+    public static string After1(int[] next)
     {
-        int onePos = Array.IndexOf(cups, 1);
-        int[] result = new int[cups.Length - 1];
-        int rightLen = cups.Length - onePos - 1;
-        int leftLen = onePos;
-        if (rightLen > 0)
-            Array.Copy(cups, (onePos + 1) % cups.Length, result, 0, rightLen);
-        if (leftLen > 0)
-            Array.Copy(cups, 0, result, rightLen, leftLen);
+        var result = new List<int>();
+        int current = 1;
+        for (int i = 0; i < next.Length - 2; i++)
+        {
+            current = next[current];
+            result.Add(current);
+        }
         return result.ToDelimitedString("");
+    }
+
+    public static int[] BuildNext(int[] cups)
+    {
+        int[] result = new int[cups.Length + 1];
+        for (int i = 0; i < cups.Length; i++)
+        {
+            int cup = cups[i];
+            int nextCup = i < cups.Length - 1 ? cups[i + 1] : cups[0];
+            result[cup] = nextCup;
+        }
+        return result;
     }
 
     public static string Part1(string sequence)
     {
         var cups = sequence.Trim().Select(c => (int)c - '0').ToArray();
-        maxVal = 9;
+        var next = BuildNext(cups);
+        int current = cups[0];
+        for (int i = 0; i < 100; i++)
+        {
+            current = Move(next, current);
+        }
 
-        return After1(MoreEnumerable.Generate(cups, Move).ElementAt(100));
+        return After1(next);
+    }
+
+    public static string Part2(string sequence)
+    {
+        int maxVal = 1000000;
+        var cups = sequence.Trim().Select(c => (int)c - '0')
+            .Concat(Enumerable.Range(10, maxVal - 9))
+            .ToArray();
+
+        W($"max={cups.Max()} count={cups.Length}");
+
+        return "oioi";
     }
 
     static void Main(string[] args)
