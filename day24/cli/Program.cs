@@ -45,19 +45,20 @@ public static class Program
 
     public static int Part2((int x, int y)[] black, int days)
     {
-        static IEnumerable<(int x, int y)> neighbors((int, int) c)
+        static IEnumerable<int> neighbors(int c)
         {
-            var (x, y) = c;
-
-            yield return (x + 1, y);
-            yield return (x - 1, y);
-            yield return (x, y + 1);
-            yield return (x - 1, y + 1);
-            yield return (x, y - 1);
-            yield return (x + 1, y - 1);
+            yield return c + 1;
+            yield return c - 1;
+            yield return c + 1000;
+            yield return c + 999;
+            yield return c - 1000;
+            yield return c - 999;
         }
 
-        var blackSet = Enumerable.ToHashSet(black);
+        var blackInts = black.Select(c => (x: c.x + 500, y: c.y + 500)).Assert(c => c.x > 0 && c.x < 1000 && c.y > 0 && c.y < 1000)
+            .Select(c => c.y * 1000 + c.x);
+
+        var blackSet = Enumerable.ToHashSet(blackInts);
 
         for (int i = 0; i < days; i++)
         {
