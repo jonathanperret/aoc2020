@@ -45,34 +45,29 @@ public static class Program
 
     public static int Part2((int x, int y)[] black, int days)
     {
-        static (int x, int y)[] neighbors((int, int) c)
+        static IEnumerable<(int x, int y)> neighbors((int, int) c)
         {
             var (x, y) = c;
-            return new (int, int)[]{
-                (x + 1, y),
-                (x - 1, y),
-                (x, y + 1),
-                (x - 1, y + 1),
-                (x, y - 1),
-                (x + 1, y - 1),
-            };
+
+            yield return (x + 1, y);
+            yield return (x - 1, y);
+            yield return (x, y + 1);
+            yield return (x - 1, y + 1);
+            yield return (x, y - 1);
+            yield return (x + 1, y - 1);
         }
 
         var blackSet = Enumerable.ToHashSet(black);
 
         for (int i = 0; i < days; i++)
         {
-            var white = Enumerable.ToHashSet(blackSet.SelectMany(neighbors));
-            white.ExceptWith(blackSet);
-            white.RemoveWhere(c => neighbors(c).Count(nb => blackSet.Contains(nb)) != 2);
-            var deadblack = blackSet.Where(c =>
-            {
-                int n = neighbors(c).Count(nb => blackSet.Contains(nb));
-                return n < 1 || n > 2;
-            }).ToArray();
-            blackSet.ExceptWith(deadblack);
-
-            blackSet.UnionWith(white);
+            var neighborList = blackSet.SelectMany(neighbors);
+            var newBlack = neighborList
+                .CountBy(c => c)
+                .Choose(kv =>
+                    (kv.Value == 2 || (kv.Value == 1 && blackSet.Contains(kv.Key)), kv.Key)
+                );
+            blackSet = Enumerable.ToHashSet(newBlack);
 
             // W($"Day {i + 1}: {blackSet.Count}");
         }
