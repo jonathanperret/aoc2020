@@ -9,7 +9,7 @@ using System.Collections.Generic;
 using System.Collections;
 using static Util;
 using System.Diagnostics;
-
+using System.Reflection;
 public static class Program
 {
     public static (int, int)[] Part1(string[] lines)
@@ -50,6 +50,12 @@ public static class Program
         return a.Cast<bool>().Count(b => b);
     }
 
+    static BitArray SetTo(this BitArray a, BitArray other)
+    {
+        int[] aArray = arrayField.GetValue(a) as int[];
+        other.CopyTo(aArray, 0);
+        return a;
+    }
 
     public static int Part2Sets((int x, int y)[] black, int days)
     {
@@ -99,6 +105,15 @@ public static class Program
         return new BitArray(a).And(b);
     }
     const int stride = 128;
+    const int bitcount = 4 * stride * stride;
+
+    private static FieldInfo GetArrayField()
+    {
+        Type type = typeof(BitArray);
+        return type.GetField("m_array", BindingFlags.Instance | BindingFlags.NonPublic);
+    }
+
+    private static readonly FieldInfo arrayField = GetArrayField();
 
     public static int Part2BitsSlow((int x, int y)[] black, int days)
     {
@@ -106,7 +121,7 @@ public static class Program
             .Assert(c => c.x > 0 && c.x < 2 * stride && c.y > 0 && c.y < 2 * stride)
             .Select(c => c.y * 2 * stride + c.x);
 
-        var blackSet = new BitArray(4 * stride * stride);
+        var blackSet = new BitArray(bitcount);
         blackInts.ForEach(i => blackSet.Set(i, true));
 
         for (int i = 0; i < days; i++)
@@ -196,7 +211,7 @@ public static class Program
             .Assert(c => c.x > 0 && c.x < 2 * stride && c.y > 0 && c.y < 2 * stride)
             .Select(c => c.y * 2 * stride + c.x);
 
-        var blackSet = new BitArray(4 * stride * stride);
+        var blackSet = new BitArray(bitcount);
         blackInts.ForEach(i => blackSet.Set(i, true));
 
         for (int i = 0; i < days; i++)
@@ -244,61 +259,62 @@ public static class Program
             .Assert(c => c.x > 0 && c.x < 2 * stride && c.y > 0 && c.y < 2 * stride)
             .Select(c => c.y * 2 * stride + c.x);
 
-        var blackSet = new BitArray(4 * stride * stride);
+
+        var blackSet = new BitArray(bitcount);
         blackInts.ForEach(i => blackSet.Set(i, true));
 
-        var a = new BitArray(4 * stride * stride);
-        var b = new BitArray(4 * stride * stride);
-        var c = new BitArray(4 * stride * stride);
-        var d = new BitArray(4 * stride * stride);
-        var e = new BitArray(4 * stride * stride);
-        var f = new BitArray(4 * stride * stride);
-        var ab_0 = new BitArray(4 * stride * stride);
-        var ab_1 = new BitArray(4 * stride * stride);
-        var abc_0 = new BitArray(4 * stride * stride);
-        var abc_1 = new BitArray(4 * stride * stride);
-        var de_0 = new BitArray(4 * stride * stride);
-        var de_1 = new BitArray(4 * stride * stride);
-        var def_0 = new BitArray(4 * stride * stride);
-        var def_1 = new BitArray(4 * stride * stride);
-        var abcdef_0 = new BitArray(4 * stride * stride);
-        var abcdef_0c = new BitArray(4 * stride * stride);
-        var abcdef_1 = new BitArray(4 * stride * stride);
-        var abcdef_1c = new BitArray(4 * stride * stride);
-        var abcdef_2 = new BitArray(4 * stride * stride);
-        var one = new BitArray(4 * stride * stride);
-        var two = new BitArray(4 * stride * stride);
-        var zero = new BitArray(4 * stride * stride);
+        var a = new BitArray(bitcount);
+        var b = new BitArray(bitcount);
+        var d = new BitArray(bitcount);
+        var c = new BitArray(bitcount);
+        var f = new BitArray(bitcount);
+        var e = new BitArray(bitcount);
+        var ab_0 = new BitArray(bitcount);
+        var ab_1 = new BitArray(bitcount);
+        var abc_0 = new BitArray(bitcount);
+        var abc_1 = new BitArray(bitcount);
+        var de_0 = new BitArray(bitcount);
+        var de_1 = new BitArray(bitcount);
+        var def_0 = new BitArray(bitcount);
+        var def_1 = new BitArray(bitcount);
+        var abcdef_0 = new BitArray(bitcount);
+        var abcdef_0c = new BitArray(bitcount);
+        var abcdef_1 = new BitArray(bitcount);
+        var abcdef_1c = new BitArray(bitcount);
+        var abcdef_2 = new BitArray(bitcount);
+        var one = new BitArray(bitcount);
+        var two = new BitArray(bitcount);
+        var zero = new BitArray(bitcount);
 
         for (int i = 0; i < days; i++)
         {
-            a.SetAll(false); a.Or(blackSet).RightShift(1);
-            b.SetAll(false); b.Or(blackSet).LeftShift(1);
-            c.SetAll(false); c.Or(blackSet).LeftShift(2 * stride - 1);
-            d.SetAll(false); d.Or(blackSet).LeftShift(2 * stride);
-            e.SetAll(false); e.Or(blackSet).RightShift(2 * stride - 1);
-            f.SetAll(false); f.Or(blackSet).RightShift(2 * stride);
+            a.SetTo(blackSet).RightShift(1);
+            b.SetTo(blackSet).LeftShift(1);
+            c.SetTo(blackSet).LeftShift(2 * stride);
+            d.SetTo(a).LeftShift(2 * stride);
+            e.SetTo(blackSet).RightShift(2 * stride);
+            f.SetTo(b).RightShift(2 * stride);
 
-            ab_0.SetAll(false); ab_0.Or(a).Xor(b);
-            ab_1.SetAll(false); ab_1.Or(a).And(b);
+            ab_0.SetTo(a).Xor(b);
+            ab_1.SetTo(a).And(b);
 
-            abc_0.SetAll(false); abc_0.Or(ab_0).Xor(c);
-            abc_1.SetAll(false); abc_1.Or(ab_0).And(c).Or(ab_1);
+            abc_0.SetTo(ab_0).Xor(d);
+            abc_1.SetTo(ab_0).And(d).Or(ab_1);
 
-            de_0.SetAll(false); de_0.Or(d).Xor(e);
-            de_1.SetAll(false); de_1.Or(d).And(e);
+            de_0.SetTo(c).Xor(f);
+            de_1.SetTo(c).And(f);
 
-            def_0.SetAll(false); def_0.Or(de_0).Xor(f);
-            def_1.SetAll(false); def_1.Or(de_0).And(f).Or(de_1);
+            def_0.SetTo(de_0).Xor(e);
+            def_1.SetTo(de_0).And(e).Or(de_1);
 
-            abcdef_0.SetAll(false); abcdef_0.Or(abc_0).Xor(def_0);
-            abcdef_0c.SetAll(false); abcdef_0c.Or(abc_0).And(def_0);
-            abcdef_1.SetAll(false); abcdef_1.Or(abc_1).Xor(def_1).Xor(abcdef_0c);
-            abcdef_1c.SetAll(false); abcdef_1c.Or(abc_1).And(def_1);
-            abcdef_2.SetAll(false); abcdef_2.Or(abc_1).Or(def_1).And(abcdef_0c).Or(abcdef_1c);
+            abcdef_0.SetTo(abc_0).Xor(def_0);
+            abcdef_0c.SetTo(abc_0).And(def_0);
+            abcdef_1.SetTo(abc_1).Xor(def_1).Xor(abcdef_0c);
+            abcdef_1c.SetTo(abc_1).And(def_1);
+            abcdef_2.SetTo(abc_1).Or(def_1).And(abcdef_0c).Or(abcdef_1c);
 
-            one.SetAll(false); one.Or(abcdef_1).Or(abcdef_2).Not().And(abcdef_0);
-            two.SetAll(false); two.Or(abcdef_0).Or(abcdef_2).Not().And(abcdef_1);
+            one.SetTo(abcdef_1).Or(abcdef_2).Not().And(abcdef_0);
+            two.SetTo(abcdef_0).Or(abcdef_2).Not().And(abcdef_1);
 
             blackSet.And(one).Or(two);
 
