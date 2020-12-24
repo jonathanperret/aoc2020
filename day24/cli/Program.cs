@@ -58,16 +58,25 @@ public static class Program
             };
         }
 
+        var blackSet = Enumerable.ToHashSet(black);
+
         for (int i = 0; i < days; i++)
         {
-            var white = black.SelectMany(neighbors).Except(black);
-            var newblack = white.Where(c => neighbors(c).Intersect(black).Count() == 2);
-            var survivingblack = black.Where(c => { int n = neighbors(c).Intersect(black).Count(); return n == 1 || n == 2; });
+            var white = Enumerable.ToHashSet(blackSet.SelectMany(neighbors));
+            white.ExceptWith(blackSet);
+            white.RemoveWhere(c => neighbors(c).Count(nb => blackSet.Contains(nb)) != 2);
+            var deadblack = blackSet.Where(c =>
+            {
+                int n = neighbors(c).Count(nb => blackSet.Contains(nb));
+                return n < 1 || n > 2;
+            }).ToArray();
+            blackSet.ExceptWith(deadblack);
 
-            black = newblack.Concat(survivingblack).ToArray();
-            W(black.Length);
+            blackSet.UnionWith(white);
+
+            // W($"Day {i + 1}: {blackSet.Count}");
         }
-        return black.Length;
+        return blackSet.Count;
     }
 
     static void Main(string[] args)
