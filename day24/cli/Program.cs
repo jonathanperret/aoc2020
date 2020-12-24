@@ -265,56 +265,43 @@ public static class Program
 
         var a = new BitArray(bitcount);
         var b = new BitArray(bitcount);
-        var d = new BitArray(bitcount);
         var c = new BitArray(bitcount);
-        var f = new BitArray(bitcount);
+        var d = new BitArray(bitcount);
         var e = new BitArray(bitcount);
-        var ab_0 = new BitArray(bitcount);
-        var ab_1 = new BitArray(bitcount);
-        var abc_0 = new BitArray(bitcount);
-        var abc_1 = new BitArray(bitcount);
-        var de_0 = new BitArray(bitcount);
-        var de_1 = new BitArray(bitcount);
-        var def_0 = new BitArray(bitcount);
-        var def_1 = new BitArray(bitcount);
-        var abcdef_0 = new BitArray(bitcount);
-        var abcdef_0c = new BitArray(bitcount);
-        var abcdef_1 = new BitArray(bitcount);
-        var abcdef_1c = new BitArray(bitcount);
-        var abcdef_2 = new BitArray(bitcount);
-        var one = new BitArray(bitcount);
-        var two = new BitArray(bitcount);
-        var zero = new BitArray(bitcount);
+        var f = new BitArray(bitcount);
+        var g = new BitArray(bitcount);
+        var h = new BitArray(bitcount);
 
         for (int i = 0; i < days; i++)
         {
             a.SetTo(blackSet).RightShift(1);
             b.SetTo(blackSet).LeftShift(1);
-            c.SetTo(blackSet).LeftShift(2 * stride);
-            d.SetTo(a).LeftShift(2 * stride);
-            e.SetTo(blackSet).RightShift(2 * stride);
-            f.SetTo(b).RightShift(2 * stride);
+            c.SetTo(a).LeftShift(2 * stride);
+            d.SetTo(blackSet).LeftShift(2 * stride);
+            e.SetTo(b).RightShift(2 * stride);
+            f.SetTo(blackSet).RightShift(2 * stride);
 
-            ab_0.SetTo(a).Xor(b);
-            ab_1.SetTo(a).And(b);
+            var ab_0 = g.SetTo(a).Xor(b);
+            var ab_1 = a.And(b);
 
-            abc_0.SetTo(ab_0).Xor(d);
-            abc_1.SetTo(ab_0).And(d).Or(ab_1);
+            var abc_0 = b.SetTo(ab_0).Xor(c);
+            var abc_1 = ab_0.And(c).Or(ab_1);
 
-            de_0.SetTo(c).Xor(f);
-            de_1.SetTo(c).And(f);
+            var de_0 = c.SetTo(d).Xor(e);
+            var de_1 = d.And(e);
 
-            def_0.SetTo(de_0).Xor(e);
-            def_1.SetTo(de_0).And(e).Or(de_1);
+            var def_0 = e.SetTo(de_0).Xor(f);
+            var def_1 = de_0.And(f).Or(de_1);
 
-            abcdef_0.SetTo(abc_0).Xor(def_0);
-            abcdef_0c.SetTo(abc_0).And(def_0);
-            abcdef_1.SetTo(abc_1).Xor(def_1).Xor(abcdef_0c);
-            abcdef_1c.SetTo(abc_1).And(def_1);
-            abcdef_2.SetTo(abc_1).Or(def_1).And(abcdef_0c).Or(abcdef_1c);
+            var abcdef_0 = f.SetTo(abc_0).Xor(def_0);
+            var abcdef_0c = abc_0.And(def_0);
 
-            one.SetTo(abcdef_1).Or(abcdef_2).Not().And(abcdef_0);
-            two.SetTo(abcdef_0).Or(abcdef_2).Not().And(abcdef_1);
+            var abcdef_1 = a.SetTo(abc_1).Xor(def_1).Xor(abcdef_0c);
+            var abcdef_1c = e.SetTo(abc_1).And(def_1);
+            var abcdef_2 = abc_1.Or(def_1).And(abcdef_0c).Or(abcdef_1c);
+
+            var one = h.SetTo(abcdef_1).Or(abcdef_2).Not().And(abcdef_0);
+            var two = abcdef_0.Or(abcdef_2).Not().And(abcdef_1);
 
             blackSet.And(one).Or(two);
 
