@@ -10,7 +10,7 @@ using static Util;
 
 public static class Program
 {
-    public static int Part1(string[] lines)
+    public static (int, int)[] Part1(string[] lines)
     {
         var flipped = lines.Select(line =>
         {
@@ -32,13 +32,42 @@ public static class Program
                     };
                 });
 
-            W($"{dirs.Str(",")} => {coord}");
+            // W($"{dirs.Str(",")} => {coord}");
             return coord;
         });
 
-        W(flipped.OrderBy(c => c).Str(","));
+        // W(flipped.OrderBy(c => c).Str(","));
 
-        return flipped.GroupBy(c => c).Where(g => g.Count() % 2 == 1).Count();
+        var black = flipped.GroupBy(c => c).Select(g => g.ToArray()).Where(g => g.Length % 2 == 1).Select(g => g[0]);
+
+        return black.ToArray();
+    }
+
+    public static int Part2((int x, int y)[] black, int days)
+    {
+        static (int x, int y)[] neighbors((int, int) c)
+        {
+            var (x, y) = c;
+            return new (int, int)[]{
+                (x + 1, y),
+                (x - 1, y),
+                (x, y + 1),
+                (x - 1, y + 1),
+                (x, y - 1),
+                (x + 1, y - 1),
+            };
+        }
+
+        for (int i = 0; i < days; i++)
+        {
+            var white = black.SelectMany(neighbors).Except(black);
+            var newblack = white.Where(c => neighbors(c).Intersect(black).Count() == 2);
+            var survivingblack = black.Where(c => { int n = neighbors(c).Intersect(black).Count(); return n == 1 || n == 2; });
+
+            black = newblack.Concat(survivingblack).ToArray();
+            W(black.Length);
+        }
+        return black.Length;
     }
 
     static void Main(string[] args)
@@ -50,7 +79,9 @@ public static class Program
         // int max = numbers.Max();
         // int min = numbers.Min();
 
-        var result = Part1(lines);
+        var black = Part1(lines);
+        W($"{black.Length}");
+        var result = Part2(black, 100);
         W($"{result}");
     }
 }

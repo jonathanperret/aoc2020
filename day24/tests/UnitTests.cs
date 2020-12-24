@@ -16,6 +16,24 @@ namespace tests
         {
             Assert.AreEqual(10, Part1(
                 File.ReadAllLines("../../../../cli/example.txt")
+            ).Length);
+        }
+
+        [Test]
+        public void TestPart2_1()
+        {
+            Assert.AreEqual(15, Part2(
+                Part1(File.ReadAllLines("../../../../cli/example.txt")),
+                1
+            ));
+        }
+
+        [Test]
+        public void TestPart2()
+        {
+            Assert.AreEqual(2208, Part2(
+                Part1(File.ReadAllLines("../../../../cli/example.txt")),
+                100
             ));
         }
     }
