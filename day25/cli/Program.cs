@@ -13,19 +13,10 @@ public static class Program
     public static long Part1(long cardKey, long doorKey)
     {
         int cardLoopSize = FindLoopSize(cardKey);
-        int doorLoopSize = FindLoopSize(doorKey);
+        int doorLoopSize = -1; //FindLoopSize(doorKey);
         W($"card {cardLoopSize}, door {doorLoopSize}");
 
-        long subject = doorKey;
-        long value = 1;
-        for (int i = 1; i <= cardLoopSize; i++)
-        {
-            // W($"{i}: {value}");
-            value *= subject;
-            value = value % 20201227;
-        }
-
-        return value;
+        return (long)BigInteger.ModPow(doorKey, cardLoopSize, 20201227);
     }
 
     private static int FindLoopSize(long cardKey)
