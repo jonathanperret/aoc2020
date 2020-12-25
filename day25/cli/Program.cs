@@ -10,27 +10,20 @@ using static Util;
 
 public static class Program
 {
+    const long modulus = 20201227;
     public static long Part1(long cardKey, long doorKey)
     {
         int cardLoopSize = FindLoopSize(cardKey);
-        int doorLoopSize = -1; //FindLoopSize(doorKey);
-        W($"card {cardLoopSize}, door {doorLoopSize}");
+        W($"card {cardLoopSize}");
 
-        return (long)BigInteger.ModPow(doorKey, cardLoopSize, 20201227);
+        return (long)BigInteger.ModPow(doorKey, cardLoopSize, modulus);
     }
 
-    private static int FindLoopSize(long cardKey)
+    private static int FindLoopSize(long targetKey)
     {
         long subject = 7;
-        long value = 1;
-        for (int cardLoopSize = 1; cardLoopSize <= 100000000; cardLoopSize++)
-        {
-            // W($"{cardLoopSize}: {value}");
-            value *= subject;
-            value = value % 20201227;
-            if (value == cardKey) return cardLoopSize;
-        }
-        throw new Exception("can't find loop size");
+        var seq = MoreEnumerable.Generate((value: 1L, index: 0), (t) => (t.value * subject % modulus, t.index + 1));
+        return seq.First(t => t.value == targetKey).index;
     }
 
     static void Main(string[] args)
